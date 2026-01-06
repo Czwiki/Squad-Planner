@@ -1,0 +1,1 @@
+// formulate all enum classes with possible inputs for CLI handling
