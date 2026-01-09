@@ -27,7 +27,6 @@ command* parse_command(const char *line, int* ret_val){
     char *token = strtok(buffer, " ");
     while(token != NULL) {
         // Process each token
-        printf("Token: %s\n", token); // Debugging line
         if (argv0 == 0) {
             if (token[0] == '-') {
                 free(buffer);
@@ -55,7 +54,6 @@ command* parse_command(const char *line, int* ret_val){
                 return NULL;
             }
             argv0++;
-            continue;
         }
         else {
             if (token[0] == '-') {

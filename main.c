@@ -18,9 +18,11 @@ int main(int argc, char const *argv[])
         if (line[0] == '\n') {
             continue;
         }
+        if (line[read - 1] == '\n') {
+            line[read - 1] = '\0';
+        }
         int ret_val = 0;
         command *cmd = parse_command(line, &ret_val);
-        printf("Return value: %d\n", ret_val);
         switch (ret_val)
         {
         case -1:
@@ -37,15 +39,20 @@ int main(int argc, char const *argv[])
         }
         if (cmd){
             printf("Command ID: %d, Name: %s\n", cmd->id, cmd->name);
+            
             free(cmd->name);
-            for (int i = 0; i < cmd->id; i++) {
-                free(cmd->options[i]);
+            int i = 0;
+            while (cmd->options && cmd->options[i]) {
+                    free(cmd->options[i]);
+                    i++;
+             }
+            if (cmd->options) free(cmd->options);
+            int j = 0;
+            while (cmd->args && cmd->args[j]) {
+                free(cmd->args[j]);
+                j++;
             }
-            free(cmd->options);
-            for (int i = 0; i < cmd->id; i++) {
-                free(cmd->args[i]);
-            }
-            free(cmd->args);
+            if (cmd->args) free(cmd->args);
             free(cmd);
         }
 
