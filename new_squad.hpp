@@ -1,1 +1,0 @@
-void new_squad_cli();
