@@ -1,0 +1,1 @@
+int execute_command(command* cmd, int context);

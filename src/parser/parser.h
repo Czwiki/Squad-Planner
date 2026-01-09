@@ -1,10 +1,3 @@
-struct command
-{
-    int id;
-    char *name;
-    char **options;
-    char **args;
+#include "../command.h"
 
-}typedef command;
-
-command* parse_command(const char *line, int* ret_val);
+int parse_command(const char *line, command* cmd);

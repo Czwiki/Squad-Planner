@@ -5,18 +5,15 @@
 #include <stdio.h>
 
 
-command* parse_command(const char *line, int* ret_val){
+int parse_command(const char *line, command* cmd){
+    if (!cmd) {
+        return -1;
+    }
     char* buffer = NULL;
     if (!(buffer = strdup(line))) {
-        if (ret_val) *ret_val = -1;
-        return NULL;
+        return -1;
     }
-    command *cmd = malloc(sizeof(command));
-    if (!cmd) {
-        free(buffer);
-        if (ret_val) *ret_val = -1;
-        return NULL;
-    }
+
     cmd->id = 0;
     cmd->name = NULL;
     cmd->options = NULL;
@@ -30,9 +27,7 @@ command* parse_command(const char *line, int* ret_val){
         if (argv0 == 0) {
             if (token[0] == '-') {
                 free(buffer);
-                free(cmd);
-                if (ret_val) *ret_val = -2;
-                return NULL;
+                return -2;
             }    
             if (strcmp(token, "add") == 0) {
                 cmd->id = 1;
@@ -42,93 +37,74 @@ command* parse_command(const char *line, int* ret_val){
                 cmd->id = 3;
             } else {
                 free(buffer);
-                free(cmd);
-                if (ret_val) *ret_val = -2;
-                return NULL;
+                return -2;
             }
             cmd->name = strdup(token);
             if (!cmd->name) {
                 free(buffer);
-                free(cmd);
-                if (ret_val) *ret_val = -1;
-                return NULL;
+                return -1;
             }
             argv0++;
         }
-        else {
-            if (token[0] == '-') {
-                // It's an option
-                // For simplicity, we skip storing options in this example
-                char * temp = strdup(token);
-                if (!temp) {
-                    free(buffer);
-                    free(cmd->name);
-                    free(cmd);
-                    if (ret_val) *ret_val = -1;
-                    return NULL;
-                }
-                options_count++;
-                cmd->options = realloc(cmd->options, sizeof(char*) * (options_count));
-                if (!cmd->options) {
-                    free(buffer);
-                    free(cmd->name);
-                    free(temp);
-                    free(cmd);
-                    if (ret_val) *ret_val = -1;
-                    return NULL;
-                }
-                cmd->options[options_count - 1] = temp;
-            } 
             else {
-                // It's an argument
-                // For simplicity, we skip storing arguments in this example
-                char * temp = strdup(token);
-                if (!temp) {
-                    free(buffer);
-                    free(cmd->name);
-                    for (int j = 0; j < options_count; j++) {
-                        free(cmd->options[j]);
+                if (token[0] == '-') {
+                    char * temp = strdup(token);
+                    if (!temp) {
+                        free(buffer);
+                        free(cmd->name);
+                        return -1;
                     }
-                    free(cmd->options);
-                    free(cmd);
-                    if (ret_val) *ret_val = -1;
-                    return NULL;
-                }
-                args_count++;
-                cmd->args = realloc(cmd->args, sizeof(char*) * (args_count));
-                if (!cmd->args) {
-                    free(buffer);
-                    free(cmd->name);
-                    for (int j = 0; j < options_count; j++) {
-                        free(cmd->options[j]);
+                    char **new_opts = realloc(cmd->options, sizeof(char*) * (options_count + 1));
+                    if (!new_opts) {
+                        free(buffer);
+                        free(cmd->name);
+                        free(temp);
+                        for (int j = 0; j < options_count; j++) free(cmd->options[j]);
+                        free(cmd->options);
+                        return -1;
                     }
-                    free(cmd->options);
-                    free(temp);
-                    free(cmd);
-                    if (ret_val) *ret_val = -1;
-                    return NULL;
+                    cmd->options = new_opts;
+                    cmd->options[options_count] = temp;
+                    options_count++;
+                } 
+                else {
+                    char * temp = strdup(token);
+                    if (!temp) {
+                        free(buffer);
+                        free(cmd->name);
+                        for (int j = 0; j < options_count; j++) free(cmd->options[j]);
+                        free(cmd->options);
+                        for (int j = 0; j < args_count; j++) free(cmd->args[j]);
+                        free(cmd->args);
+                        return -1;
+                    }
+                    char **new_args = realloc(cmd->args, sizeof(char*) * (args_count + 1));
+                    if (!new_args) {
+                        free(buffer);
+                        free(temp);
+                        free(cmd->name);
+                        for (int j = 0; j < options_count; j++) free(cmd->options[j]);
+                        free(cmd->options);
+                        for (int j = 0; j < args_count; j++) free(cmd->args[j]);
+                        free(cmd->args);
+                        return -1;
+                    }
+                    cmd->args = new_args;
+                    cmd->args[args_count] = temp;
+                    args_count++;
                 }
-                cmd->args[args_count - 1] = temp;
             }
-        }
         token = strtok(NULL, " ");
     }
     if (errno !=0 && errno != EINVAL) {
         free(buffer);
         free(cmd->name);
-        for (int j = 0; j < options_count; j++) {
-            free(cmd->options[j]);
-        }
+        for (int j = 0; j < options_count; j++) free(cmd->options[j]);
         free(cmd->options);
-        for (int j = 0; j < args_count; j++) {
-            free(cmd->args[j]);
-        }
+        for (int j = 0; j < args_count; j++) free(cmd->args[j]);
         free(cmd->args);
-        free(cmd);
-        if (ret_val) *ret_val = -1;
-        return NULL;
+        return -1;
     }
     free(buffer);
-    if (ret_val) *ret_val = 0;
-    return cmd;
+    return 0;
 }

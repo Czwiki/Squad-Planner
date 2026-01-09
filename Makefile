@@ -1,17 +1,22 @@
 CC = gcc
 CFLAGS = -pedantic -Wall -Werror
 
-main_run: main.o parser.o
-	$(CC) $(CFLAGS) main.o parser.o -o main
+main_run: main.o parser.o exec.o
+	$(CC) $(CFLAGS) main.o parser.o exec.o -o main
 	rm main.o
 	rm parser.o
+	rm exec.o
 	./main
 	rm main
 
-main: main.o parser.o
-	$(CC) $(CFLAGS) main.o parser.o -o main
+main: main.o parser.o exec.o
+	$(CC) $(CFLAGS) main.o parser.o exec.o -o main
 	rm main.o
 	rm parser.o
+	rm exec.o
+
+exec.o: src/exec/exec.c
+	$(CC) $(CFLAGS) -c src/exec/exec.c -o exec.o
 
 main.o: main.c 
 	$(CC) $(CFLAGS) -c main.c -o main.o
