@@ -4,14 +4,35 @@
 #include <errno.h>
 #include <stdio.h>
 
+static char *command_inputs_main[3] ={"help","new","load"};
+static char *command_inputs_formation[6] = {"help","add","remove","list","save","show"};
+static char *command_inputs_saves[1] = {"save"};
 
-int parse_command(const char *line, command* cmd){
+int parse_command(const char *line, int current_context, command* cmd){
     if (!cmd) {
         return -1;
     }
     char* buffer = NULL;
     if (!(buffer = strdup(line))) {
         return -1;
+    }
+    char ** command_inputs;
+    int length = 0;
+    switch (current_context) {
+        case 0:
+            command_inputs = command_inputs_main;
+            length = 3;
+            break;
+        case 1:
+            command_inputs = command_inputs_formation;
+            length = 6;
+            break;
+        case 2:
+            command_inputs = command_inputs_saves;
+            length = 1;
+            break;
+        default:
+            return -2;
     }
 
     cmd->id = 0;
@@ -28,16 +49,18 @@ int parse_command(const char *line, command* cmd){
             if (token[0] == '-') {
                 free(buffer);
                 return -2;
-            }    
-            if (strcmp(token, "add") == 0) {
-                cmd->id = 1;
-            } else if (strcmp(token, "remove") == 0) {
-                cmd->id = 2;
-            } else if (strcmp(token, "list") == 0) {
-                cmd->id = 3;
-            } else {
+            }
+            int found = 0;
+            for (int i = 0; i < length; i++) {
+                if (strcmp(token, command_inputs[i]) == 0) {
+                    cmd->id = i;
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found){
                 free(buffer);
-                return -2;
+                return -3;
             }
             cmd->name = strdup(token);
             if (!cmd->name) {
