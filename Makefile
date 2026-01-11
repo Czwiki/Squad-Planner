@@ -16,7 +16,7 @@ main: main.o parser.o exec.o help_commands.o
 	rm parser.o
 	rm exec.o
 	rm help_commands.o
-	
+
 exec.o: src/exec/exec.c
 	$(CC) $(CFLAGS) -c src/exec/exec.c -o exec.o
 
@@ -33,7 +33,7 @@ clean:
 	rm -f main.o
 	rm -f parser.o
 	rm -f exec.o
-	main_menu_commands.o
+	rm -f help_commands.o
 	rm -f main
 
 .PHONY: clean
