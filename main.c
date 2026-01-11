@@ -32,9 +32,9 @@ int clean_command (command* cmd) {
 int main(int argc, char const *argv[])
 {
     // command id -1 == exit
-    int context = 0; // 0 == main menu, 1 == in squad planner, 2 == help menu, 3 == load menu
+    int context = 0; // 0 == main menu, 2 == in squad planner, 1 == help menu, 3 == load menu
 
-    char *prompt = "squad-planner> ";
+    char *prompt = "squad-planner - main> ";
     command *cmd = malloc(sizeof(command));
     if (!cmd) {
         perror("Memory allocation error: ");
@@ -60,10 +60,10 @@ int main(int argc, char const *argv[])
         }
 
         int executing = 1;
-        int ret_val = parse_command(line, context, cmd);
-        switch (ret_val) {
+        
+        switch (parse_command(line, context, cmd)) { // all cases mutually exclusive
         case -1:
-            /* code */
+            clean_command(cmd);
             perror("Error parsing command: ");
             exit(EXIT_FAILURE);
             break;
@@ -76,20 +76,32 @@ int main(int argc, char const *argv[])
             fprintf(stderr, "Unknown command in this environment\n");
             executing = 0;
             break;
-        default:
+        default: // just for the top 4 cases to change context
             break;
         }
-        if (ret_val >= 0) {
-            if (ret_val == 0) {
-                prompt = "squad-planner> ";
+
+        if (cmd->future_context != context) {
+            switch (cmd->future_context)
+            {
+            case 0:
+                prompt = "squad-planner - main> ";
+                context = cmd->future_context;
+                break;
+            case 1:
+                prompt = "squad-planner - help> ";
+                context = cmd->future_context;
+                break;
+            case 2:
+                prompt = "squad-planner - formation> ";
+                context = cmd->future_context;
+                break;
+            case 3:
+                prompt = "squad-planner - saves> ";
+                context = cmd->future_context;
+                break;
+            default:
+                break;
             }
-            else if (ret_val == 1) {
-                prompt = "formation> ";
-            }
-            else if (ret_val ==2) {
-                prompt = "saves> ";
-            }
-            context = ret_val;
         }
 
         if (executing){      
