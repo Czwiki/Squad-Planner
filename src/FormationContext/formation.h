@@ -4,6 +4,8 @@ char ** positions = {"GK", "LWB", "LB", "LCB", "CB", "RCB", "RDB", "RWB", "LCDM"
 
 struct formation
 {
+    char* name;
     int map_of_positions[24];
     position positions[11];
+    formation* next;
 }typedef formation;

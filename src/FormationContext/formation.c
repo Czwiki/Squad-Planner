@@ -1,6 +1,7 @@
 #include "formation.h"
 #include <stdio.h>
 
+static formation*formation_head = NULL; 
 static formation*current_formation = NULL;
 
 int parse_position_string(char *position_str) {
@@ -12,13 +13,60 @@ int parse_position_string(char *position_str) {
     return -1; // Position not found
 }
 
-int new_formation(formation* form) {
-    if (!form) {
+int open_formation(char* name) {
+    if (!name) {
         return -1;
     }
-    current_formation = form;
+    formation* current = formation_head;
+    formation* previous = NULL;
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            // Found the formation
+            current_formation = current;
+            return 0;
+        }
+        previous = current;
+        current = current->next;
+    }
+    return -2; // Formation not found
+}
+
+int new_formation(char* name) {
+    if (!name) {
+        return -1;
+    }
+    if (formation_head == NULL) {
+        formation_head = malloc(sizeof(formation));
+        if (!formation_head) {
+            return -1;
+        }
+        formation_head->name = strdup(name);
+        if (!formation_head->name) {
+            free(formation_head);
+            formation_head = NULL;
+            return -1;
+        }
+        formation_head->next = NULL;
+    } 
+    else {
+        formation* current = formation_head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        formation* new_form = malloc(sizeof(formation));
+        if (!new_form) {
+            return -1;
+        }
+        new_form->name = strdup(name);
+        if (!new_form->name) {
+            free(new_form);
+            return -1;
+        }
+        new_form->next = NULL;
+        current->next = new_form;
+    }
     for (int i = 0; i < 24; i++) {
-        current_formation->map_of_positions[i] = 0; // -1 indicates no player assigned to that position
+        formation_head->map_of_positions[i] = 0; // -1 indicates no player assigned to that position
     }  
     return 0;
 }
@@ -37,9 +85,6 @@ int add_position_to_formation(char *position_name) {
         if (current_formation->map_of_positions[i] != 0) {
             assigned_count++;
         }
-        //if (current_formation->positions[i].name && strcmp(current_formation->positions[i].name, position_name) == 0) {
-        //    position_id = current_formation->positions[i].id;
-        //}
     }
     if (position_id == -1) {
         return -2; // Position not found

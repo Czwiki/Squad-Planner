@@ -32,7 +32,7 @@ int clean_command (command* cmd) {
 int main(int argc, char const *argv[])
 {
     // command id -1 == exit
-    int context = 0; // 0 == main menu, 2 == in squad planner, 1 == help menu, 3 == load menu
+    int context = 0; // 0 == main menu, 1 == in formation planner, 2 == load menu
 
     char *prompt = "squad-planner - main> ";
     command *cmd = malloc(sizeof(command));
