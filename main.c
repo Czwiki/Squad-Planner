@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
     // command id -1 == exit
     int context = 0; // 0 == main menu, 1 == in formation planner, 2 == load menu
 
-    char *prompt = "squad-planner - main> ";
+    char prompt[60] = "squad-planner - main> "; // TODO size open for discussion
     command *cmd = malloc(sizeof(command));
     if (!cmd) {
         perror("Memory allocation error: ");
@@ -84,30 +84,46 @@ int main(int argc, char const *argv[])
             switch (cmd->future_context)
             {
             case 0:
-                prompt = "squad-planner - main> ";
+                if (snprintf(prompt, 60, "squad-planner - main> ") < 0) {
+                    perror("Error setting prompt: ");
+                    exit(EXIT_FAILURE);
+                }
                 context = cmd->future_context;
                 break;
             case 1:
-                prompt = "squad-planner - help> ";
+                if (snprintf(prompt, 60, "squad-planner - formation> ") < 0) {
+                    perror("Error setting prompt: ");
+                    exit(EXIT_FAILURE);
+                }
                 context = cmd->future_context;
                 break;
             case 2:
-                prompt = "squad-planner - formation> ";
-                context = cmd->future_context;
-                break;
-            case 3:
-                prompt = "squad-planner - saves> ";
+                if (snprintf(prompt, 60, "squad-planner - saves> ") < 0) {
+                    perror("Error setting prompt: ");
+                    exit(EXIT_FAILURE);
+                }
                 context = cmd->future_context;
                 break;
             default:
                 break;
             }
+            executing = 0;
         }
 
         if (executing){      
             printf("Command ID: %d, Name: %s\n", cmd->id, cmd->name);  
             if (execute_command(cmd, context) < 0) {
             fprintf(stderr, "Error executing command\n");
+            }
+            else {
+                // Successful execution
+                if (context == 1 && cmd->id == 1) {
+                    if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", cmd->args[0]) < 0) {
+                        perror("Error setting prompt: ");
+                        exit(EXIT_FAILURE);
+                    }
+                    printf("In formation context\n");
+                }
             }
         }
 
@@ -124,3 +140,4 @@ int main(int argc, char const *argv[])
     free(cmd);
     return 0;
 }
+

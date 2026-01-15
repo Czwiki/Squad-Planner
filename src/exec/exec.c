@@ -13,8 +13,8 @@ int exec_main_command(int cmd_id) {
         ret_val = print_help_page();
         break;
     case 1: // new
-        //printf("Executing 'new' command in main menu.\n");
-        new_formation("Default Formation");
+        printf("Executing 'new' command in main menu.\n");
+        //new_formation("Default Formation");
         break;
     case 2: // load
         printf("Executing 'load' command in main menu.\n");
@@ -28,8 +28,21 @@ int exec_main_command(int cmd_id) {
 int exec_formation_command(int cmd_id, char** options, char** args) {
     // Dummy implementation
     // In a real scenario, this would execute the formation command based on cmd_id, options, and args
-    printf("Executing formation command ID %d with options and args.\n", cmd_id);
-    return 0; // Return 0 on success
+    int ret_val = 0;
+    switch (cmd_id) {
+    case 0:
+        ret_val = print_help_page();
+        break;
+    case 1:
+        if (options) {
+            return -2;
+        }
+        ret_val = new_formation(args[0]);
+        break;
+    default:
+        break;
+    }
+    return ret_val; // Return 0 on success
 }
 
 int exec_load_command(int cmd_id, char** args) {
@@ -44,6 +57,12 @@ int execute_command(command* cmd, int context) {
     // Dummy implementation of command execution
     // In a real scenario, this would call the appropriate function based on cmd->id and context
     printf("Executing command ID %d in context %d\n", cmd->id, context);
+    if (!cmd) {
+        return -1;
+    }
+    if (cmd->id == 0) {
+        return print_help_page();
+    }
     int ret_val = 0;
     switch (context) {
     case 0:
@@ -51,12 +70,9 @@ int execute_command(command* cmd, int context) {
         ret_val = exec_main_command(cmd->id);
         break;
     case 1:
-        ret_val = print_help_page();
-        break;
-    case 2:
         ret_val = exec_formation_command(cmd->id, cmd->options, cmd->args);
         break;
-    case 3:
+    case 2:
         ret_val = exec_load_command(cmd->id, cmd->args);
         break;
     default:

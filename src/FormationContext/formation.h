@@ -1,11 +1,14 @@
 #include "position.h"
 
-char ** positions = {"GK", "LWB", "LB", "LCB", "CB", "RCB", "RDB", "RWB", "LCDM", "CDM", "RCDM", "LM", "LCM", "CM", "RCM", "RM", "LAM", "LCAM", "CAM", "RCAM", "RAM", "LS", "ST", "RS"};
-
-struct formation
+typedef struct formation
 {
     char* name;
     int map_of_positions[24];
     position positions[11];
-    formation* next;
-}typedef formation;
+    struct formation* next;
+} formation;
+
+int open_formation(char* name);
+int new_formation(char* name);
+int add_position_to_formation(char *position_name);
+int present_formation();

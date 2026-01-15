@@ -4,9 +4,9 @@
 #include <errno.h>
 #include <stdio.h>
 
-static char *command_inputs_main[3] ={"help","new","load"};
-static char *command_inputs_formation[7] = {"help","add","remove","list","save","show","back"};
-static char *command_inputs_saves[2] = {"help","save"};
+static char *command_inputs_main[3] ={"help","formation","load"};
+static char *command_inputs_formation[8] = {"help","new","add","remove","list","save","show","back"};
+static char *command_inputs_saves[3] = {"help","save", "back"};
 
 int parse_command(const char *line, int current_context, command* cmd){
     if (!cmd) {
@@ -25,11 +25,11 @@ int parse_command(const char *line, int current_context, command* cmd){
             break;
         case 1:
             command_inputs = command_inputs_formation;
-            length = 7;
+            length = 8;
             break;
         case 2:
             command_inputs = command_inputs_saves;
-            length = 1;
+            length = 3;
             break;
         default:
             return -2;
@@ -38,7 +38,6 @@ int parse_command(const char *line, int current_context, command* cmd){
     int new_context = current_context;
 
     cmd->id = 0;
-    cmd->context = current_context;
     cmd->name = NULL;
     cmd->options = NULL;
     cmd->args = NULL;
@@ -58,27 +57,30 @@ int parse_command(const char *line, int current_context, command* cmd){
             for (int i = 0; i < length; i++) {
                 if (strcmp(token, command_inputs[i]) == 0) {
                     cmd->id = i;
-                    if (current_context == 0) {
+                    switch (current_context) {
+                    case 0:
                         if (i == 1) {
-                            new_context = 2; // go to formation context from main menu on new
+                            new_context = 1; // go to formation context from main menu on formation
                         }
                         else if (i == 2) {
-                            new_context = 3; // go to load context from main menu on load
+                            new_context = 2; // go to load context from main menu on load
                         }
-                    }
-                    if (current_context == 1) {
+                        break;
+                    case 1:
                         if (i == 6) {
                             new_context = 0; // back to main menu from formation
                         }
                         else if (i == 4) {
-                            new_context = 2; // go to load menu from formation on save
+                            new_context = 2; // go to load menu from formation
                         }
-                        else {
-                            new_context = 1; // stay in formation menu
+                        break;
+                    case 2:
+                        if (i == 2) {
+                            new_context = 0; // back to main menu from load menu
                         }
-                    }
-                    else {
-                        new_context = current_context;
+                        break;
+                    default:
+                        break;
                     }
                     found = 1;
                     break;

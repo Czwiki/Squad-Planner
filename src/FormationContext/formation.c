@@ -1,5 +1,10 @@
 #include "formation.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static char * positions[] = {"GK", "LWB", "LB", "LCB", "CB", "RCB", "RDB", "RWB", "LCDM", "CDM", "RCDM", "LM", "LCM", "CM", "RCM", "RM", "LAM", "LCAM", "CAM", "RCAM", "RAM", "LS", "ST", "RS"};
+
 
 static formation*formation_head = NULL; 
 static formation*current_formation = NULL;
@@ -17,8 +22,8 @@ int open_formation(char* name) {
     if (!name) {
         return -1;
     }
-    formation* current = formation_head;
-    formation* previous = NULL;
+    formation* previous = formation_head;
+    formation* current = previous;
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
             // Found the formation
@@ -35,6 +40,10 @@ int new_formation(char* name) {
     if (!name) {
         return -1;
     }
+    if (open_formation(name) == 0) {
+        return -2; // Formation with this name already exists
+    }
+
     if (formation_head == NULL) {
         formation_head = malloc(sizeof(formation));
         if (!formation_head) {
@@ -47,6 +56,7 @@ int new_formation(char* name) {
             return -1;
         }
         formation_head->next = NULL;
+        current_formation = formation_head;
     } 
     else {
         formation* current = formation_head;
@@ -64,9 +74,11 @@ int new_formation(char* name) {
         }
         new_form->next = NULL;
         current->next = new_form;
+        current_formation = new_form;
     }
+
     for (int i = 0; i < 24; i++) {
-        formation_head->map_of_positions[i] = 0; // -1 indicates no player assigned to that position
+        current_formation->map_of_positions[i] = 0; // -1 indicates no player assigned to that position
     }  
     return 0;
 }
