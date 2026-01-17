@@ -81,8 +81,7 @@ int main(int argc, char const *argv[])
         }
 
         if (cmd->future_context != context) {
-            switch (cmd->future_context)
-            {
+            switch (cmd->future_context) {
             case 0:
                 if (snprintf(prompt, 60, "squad-planner - main> ") < 0) {
                     perror("Error setting prompt: ");
@@ -126,7 +125,7 @@ int main(int argc, char const *argv[])
                 }
             }
         }
-
+        printf("here\n");
         printf("%s", prompt);
         clean_command(cmd);
     }

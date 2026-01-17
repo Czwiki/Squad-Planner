@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static char *command_inputs_main[3] ={"help","formation","load"};
-static char *command_inputs_formation[8] = {"help","new","add","remove","list","save","show","back"};
+static char *command_inputs_formation[9] = {"help","new","set","add","remove","list","save","show","back"};
 static char *command_inputs_saves[3] = {"help","save", "back"};
 
 int parse_command(const char *line, int current_context, command* cmd){
@@ -25,7 +25,7 @@ int parse_command(const char *line, int current_context, command* cmd){
             break;
         case 1:
             command_inputs = command_inputs_formation;
-            length = 8;
+            length = 9;
             break;
         case 2:
             command_inputs = command_inputs_saves;
@@ -134,6 +134,19 @@ int parse_command(const char *line, int current_context, command* cmd){
         }
         token = strtok(NULL, " ");
     }
+    if (cmd->id == 1 && current_context == 1) {
+        // load command in formation context requires exactly one argument
+        if (args_count != 1) {
+            free(buffer);
+            return -2;
+        }
+        if (strlen(cmd->args[0]) > 32) {
+            free(buffer);
+            return -2;
+        }
+    }
+
+
     if (errno !=0 && errno != EINVAL) {
         free(buffer);
         free(cmd->name);
