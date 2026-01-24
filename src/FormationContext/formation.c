@@ -268,34 +268,6 @@ int remove_position_from_formation(char *position_name) {
     return 0;
 }*/
 
-/*int add_player_to_position(char *position_name, player *p) {
-    if (!current_formation || !position_name || !p) {
-        return -1;
-    }
-    int position_id = parse_position_string(position_name);
-    if (position_id == -1) {
-        return -2; // Position not found
-    }
-    if (current_formation->map_of_positions[position_id] == 0) {
-        return -3; // Position is empty
-    }
-    position *pos = &current_formation->positions[position_id];
-    // Add player to the position's list of players
-    int count = 0;
-    if (pos->list_of_players) {
-        while (pos->list_of_players[count] != NULL) {
-            count++;
-        }
-    }
-    player **new_list = realloc(pos->list_of_players, sizeof(player*) * (count + 2));
-    if (!new_list) {
-        return -1; // Memory allocation error
-    }
-    new_list[count] = p;
-    new_list[count + 1] = NULL;
-    pos->list_of_players = new_list;
-    return 0;
-}*/
 
 int present_formation() {
     if (!current_formation) {
