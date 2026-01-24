@@ -39,6 +39,20 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
         }
         ret_val = new_formation(args[0]);
         break;
+    case 2:
+        break;
+    case 3:
+        ret_val = add_position_to_formation(args);
+        break;
+    case 4:
+        break;
+    case 5:
+        break;
+    case 6:
+        break;
+    case 7:
+        ret_val = present_formation();
+        break;
     default:
         break;
     }

@@ -10,5 +10,5 @@ typedef struct formation
 
 int open_formation(char* name);
 int new_formation(char* name);
-int add_position_to_formation(char *position_name);
+int add_position_to_formation(char **position_names);
 int present_formation();
