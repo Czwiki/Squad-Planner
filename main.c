@@ -110,11 +110,16 @@ int main(int argc, char const *argv[])
         }
 
         if (executing){      
-            printf("Command ID: %d, Name: %s\n", cmd->id, cmd->name);  
-            if (execute_command(cmd, context) < 0) {
-            fprintf(stderr, "Error executing command\n");
-            }
-            else {
+            printf("Command ID: %d, Name: %s\n", cmd->id, cmd->name);
+            int ret_val = execute_command(cmd, context);
+            switch (ret_val) {
+            case -1:
+                fprintf(stderr, "Error executing command\n");
+                break;
+            case -2:
+                fprintf(stderr, "Invalid command options/arguments\n");
+                break;
+            default:
                 // Successful execution
                 if (context == 1 && cmd->id == 1) {
                     if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", cmd->args[0]) < 0) {
@@ -123,9 +128,10 @@ int main(int argc, char const *argv[])
                     }
                     printf("In formation context\n");
                 }
+                break;
             }
+
         }
-        printf("here\n");
         printf("%s", prompt);
         clean_command(cmd);
     }

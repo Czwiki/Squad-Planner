@@ -30,32 +30,38 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     // In a real scenario, this would execute the formation command based on cmd_id, options, and args
     int ret_val = 0;
     switch (cmd_id) {
-    case 0:
+    case 0: // help
         ret_val = print_help_page();
         break;
-    case 1:
+    case 1: // new
         if (options) {
             return -2;
         }
         ret_val = new_formation(args[0]);
         break;
-    case 2:
+    case 2: // newP
+        ret_val = new_player(args);
         break;
-    case 3:
+    case 3: // set
+        break;
+    case 4: // add
         ret_val = add_position_to_formation(args);
         break;
-    case 4:
+    case 5: // addP
+        ret_val = add_player_to_position(args);
         break;
-    case 5:
+    case 6: // remove
         break;
-    case 6:
+    case 7: // list
+        ret_val = list_players_of_position(args);
         break;
-    case 7:
+    case 9: // show
         ret_val = present_formation();
         break;
     default:
         break;
     }
+    printf("%i\n", ret_val);
     return ret_val; // Return 0 on success
 }
 
@@ -92,9 +98,5 @@ int execute_command(command* cmd, int context) {
     default:
         break;
     }
-    if (ret_val < 0) {
-        return -1;
-    }
-
     return ret_val; // Return 0 on success
 }
