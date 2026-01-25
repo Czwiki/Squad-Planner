@@ -14,3 +14,5 @@ int present_formation();
 int new_player(char ** args);
 int add_player_to_position(char ** args);
 int list_players_of_position(char **args);
+int remove_player_from_position(char **args);
+int remove_position_from_formation(char **args);

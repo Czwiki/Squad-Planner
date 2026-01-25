@@ -51,11 +51,15 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
         ret_val = add_player_to_position(args);
         break;
     case 6: // remove
+        ret_val = remove_position_from_formation(args);
         break;
-    case 7: // list
+    case 7: // removeP
+        ret_val = remove_player_from_position(args);
+        break;
+    case 8: // list
         ret_val = list_players_of_position(args);
         break;
-    case 9: // show
+    case 10: // show
         ret_val = present_formation();
         break;
     default:

@@ -19,6 +19,7 @@ int parse_position_string(char *position_str) {
     }
     return -1; // Position not found
 }
+
 char* get_position_name(int position_id) {
     if (position_id < 0 || position_id >= 24) {
         return NULL;
@@ -100,7 +101,7 @@ int new_formation(char* name) {
     }
 
     for (int i = 0; i < 24; i++) {
-        current_formation->map_of_positions[i] = NULL; // -1 indicates no player assigned to that position
+        current_formation->map_of_positions[i] = NULL;
     }  
     return 0;
 }
@@ -235,39 +236,69 @@ int list_players_of_position(char **args) {
     return 0;
 }
 
-/*int free_list_of_players(player **list_of_players) {
-    if (!list_of_players) {
-        return 0;
-    }
-    int i = 0;
-    while (list_of_players[i] != NULL) {
-        free(list_of_players[i]->name);
-        free(list_of_players[i]);
-        i++;
-    }
-    free(list_of_players);
-    return 0;
-}
-
-int remove_position_from_formation(char *position_name) {
-    if (!current_formation || !position_name) {
+int remove_player_from_position(char **args) {
+    if (!current_formation || !args || !args[0] || !args[1]) {
         return -1;
     }
-    int position_id = parse_position_string(position_name);
+    int position_id = parse_position_string(args[0]);
     if (position_id == -1) {
         return -2; // Position not found
     }
-    if (current_formation->map_of_positions[position_id] == 0) {
-        return -3; // Position is already empty
+    if (current_formation->map_of_positions[position_id] == NULL) {
+        return -2; // Position is empty
     }
-    for (int i = 0; i < 11; i++) {
-        if (strcmp(current_formation->positions[i].name, position_name) == 0) {
+    position *pos = current_formation->map_of_positions[position_id];
+    int found_index = -1;
+    for (int i = 0; i < pos->size_of_list; i++) {
+        if (strcmp(pos->list_of_players[i]->name, args[1]) == 0) {
+            found_index = i;
+            break;
         }
     }
-    current_formation->map_of_positions[position_id] = 0; // 0 indicates position is empty
+    if (found_index == -1) {
+        return -2; // Player not found in the position's list
+    }
+    // Shift players to remove the player at found_index
+    for (int i = found_index; i < pos->size_of_list - 1; i++) {
+        pos->list_of_players[i] = pos->list_of_players[i + 1];
+    }
+    pos->size_of_list--;
+    if (pos->size_of_list == 0) {
+        free(pos->list_of_players);
+        pos->list_of_players = NULL;
+    } else {
+        player **new_list = realloc(pos->list_of_players, sizeof(player*) * pos->size_of_list);
+        if (new_list) {
+            pos->list_of_players = new_list;
+        }
+    }
     return 0;
-}*/
+}
 
+int remove_position_from_formation(char **args) {
+    if (!current_formation || !args || !args[0]) {
+        return -1;
+    }
+    for (int i = 0; i < 24; i++) {
+        if (current_formation->map_of_positions[i] != NULL) {
+            //free_list_of_players(current_formation->map_of_positions[i]->list_of_players);
+            if (current_formation->map_of_positions[i]->list_of_players != NULL) {
+                return -2; // Cannot remove position with assigned players
+            }
+        }
+    }
+    int position_id = parse_position_string(args[0]);
+    if (position_id == -1) {
+        return -2; // Position not found
+    }
+    if (current_formation->map_of_positions[position_id] == NULL) {
+        return -3; // Position is already empty
+    }
+    free(current_formation->map_of_positions[position_id]->list_of_players);
+    free(current_formation->map_of_positions[position_id]);
+    current_formation->map_of_positions[position_id] = NULL; // 0 indicates position is empty
+    return 0;
+}
 
 int present_formation() {
     if (!current_formation) {
