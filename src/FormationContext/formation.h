@@ -10,9 +10,10 @@ typedef struct formation
 int open_formation(char* name);
 int new_formation(char* name);
 int add_position_to_formation(char **position_names);
-int present_formation();
+int show(void);
 int new_player(char ** args);
 int add_player_to_position(char ** args);
 int list_players_of_position(char **args);
 int remove_player_from_position(char **args);
 int remove_position_from_formation(char **args);
+int preferences(char ** options, char **args);

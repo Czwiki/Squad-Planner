@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-int print_help_page() {
+int print_help_page(void) {
     printf("Squad Planner Help Page\n");
     printf("-----------------------\n");
     printf("Available commands in the main menu:\n");

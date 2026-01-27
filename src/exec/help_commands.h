@@ -1,1 +1,1 @@
-int print_help_page();
+int print_help_page(void);

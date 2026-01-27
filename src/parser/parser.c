@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static char *command_inputs_main[3] ={"help","formation","load"};
-static char *command_inputs_formation[12] = {"help","new", "newP","set","add", "addP","remove", "removeP","list","save","show","back"};
+static char *command_inputs_formation[12] = {"help","new", "newP","preference", "add", "addP","remove", "removeP","list","save","show","back"};
 static char *command_inputs_saves[3] = {"help","save", "back"};
 
 int parse_command(const char *line, int current_context, command* cmd){
@@ -99,7 +99,7 @@ int parse_command(const char *line, int current_context, command* cmd){
         }
         else {
             if (token[0] == '-') {
-                char * temp = strdup(token);
+                char *temp = strdup(token);
                 if (!temp) {
                     free(buffer);
                     free(cmd->name);

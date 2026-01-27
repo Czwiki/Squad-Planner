@@ -177,7 +177,7 @@ int add_player_to_position(char **args) {
 }
 
 int new_player(char ** args) {
-    if (!args || !args[0]) {
+    if (!args || !args[0] || !args[1] || !args[2] || !args[3] || !args[4]) {
         return -1;
     }
     player *new_p = malloc(sizeof(player));
@@ -275,6 +275,71 @@ int remove_player_from_position(char **args) {
     return 0;
 }
 
+int preferences(char **options, char **args) {
+    int backwards = 0;
+    if (!current_formation) {
+        return -1;
+    }
+    if (!args || !args[0]) {
+        return -1;
+    }
+    if (options && options[0]) {
+        if (strcmp(options[0], "-reverse") == 0) {
+            backwards = 1;
+        }
+    }
+    int position_id = parse_position_string(args[0]);
+    if (position_id == -1) {
+        return -2; // Position not found
+    }
+    if (current_formation->map_of_positions[position_id] == NULL) {
+        return -2; // Position is empty
+    }
+    position *pos = current_formation->map_of_positions[position_id];
+    if (pos->size_of_list <= 1) {
+        return 0; // No need to sort
+    }
+
+    int *preference = malloc(sizeof(int) * pos->size_of_list);
+    if (!preference) {
+        return -1; // Memory allocation error
+    }
+
+    int i = 1;
+    int p_i = 0;
+    int found = 0;
+    while (args[i] != NULL) {
+        found = 0;
+        for (int j = 0; j < pos->size_of_list; j++) {
+            if (strcmp(pos->list_of_players[j]->name, args[i]) == 0) {
+                preference[p_i] = j;
+                p_i++;
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            return -2; // Player not found in position's list
+        }
+        i++;
+    }
+    player **new_list = malloc(sizeof(player*) * pos->size_of_list);
+    if (!new_list) {
+        return -1; // Memory allocation error
+    }
+    for (int k = 0; k < pos->size_of_list; k++) {
+        if (backwards) {
+            new_list[k] = pos->list_of_players[preference[pos->size_of_list - 1 - k]];
+        } else {
+            new_list[k] = pos->list_of_players[preference[k]];
+        }
+    }
+    free(pos->list_of_players);
+    pos->list_of_players = new_list;
+    free(preference);
+    return 0;
+}
+
 int remove_position_from_formation(char **args) {
     if (!current_formation || !args || !args[0]) {
         return -1;
@@ -300,7 +365,7 @@ int remove_position_from_formation(char **args) {
     return 0;
 }
 
-int present_formation() {
+int show(void) {
     if (!current_formation) {
         return -1;
     }

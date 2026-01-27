@@ -42,7 +42,8 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     case 2: // newP
         ret_val = new_player(args);
         break;
-    case 3: // set
+    case 3: // preference
+        ret_val = preferences(options, args);
         break;
     case 4: // add
         ret_val = add_position_to_formation(args);
@@ -60,7 +61,7 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
         ret_val = list_players_of_position(args);
         break;
     case 10: // show
-        ret_val = present_formation();
+        ret_val = show();
         break;
     default:
         break;
