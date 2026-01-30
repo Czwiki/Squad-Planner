@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 static char *command_inputs_main[3] ={"help","formation","load"};
-static char *command_inputs_formation[12] = {"help","new", "newP","preference", "add", "addP","remove", "removeP","list","save","show","back"};
+static char *command_inputs_formation[14] = {"help","new", "newP","preference", "add", "addP","remove", "removeP", "list", "listf", "open", "show", "save","back"};
 static char *command_inputs_saves[3] = {"help","save", "back"};
 
 int parse_command(const char *line, int current_context, command* cmd){
@@ -25,7 +25,7 @@ int parse_command(const char *line, int current_context, command* cmd){
             break;
         case 1:
             command_inputs = command_inputs_formation;
-            length = 12;
+            length = 14;
             break;
         case 2:
             command_inputs = command_inputs_saves;
@@ -67,10 +67,10 @@ int parse_command(const char *line, int current_context, command* cmd){
                         }
                         break;
                     case 1:
-                        if (i == 11) {
+                        if (i == 13) {
                             new_context = 0; // back to main menu from formation
                         }
-                        else if (i == 9) {
+                        else if (i == 12) {
                             new_context = 2; // go to load menu from formation
                         }
                         break;

@@ -84,6 +84,9 @@ int new_formation(char* name) {
     else {
         formation* current = formation_head;
         while (current->next != NULL) {
+            if (strcmp(current->name, name) == 0) {
+                return -2; // Formation with this name already exists
+            }
             current = current->next;
         }
         formation* new_form = malloc(sizeof(formation));
@@ -233,6 +236,20 @@ int list_players_of_position(char **args) {
         printf("- %s\n", pos->list_of_players[i]->name);
     }
 
+    return 0;
+}
+
+int list_formations(void) {
+    formation* current = formation_head;
+    if (!current) {
+        printf("No formations available.\n");
+        return 0;
+    }
+    printf("Available formations:\n");
+    while (current != NULL) {
+        printf("- %s\n", current->name);
+        current = current->next;
+    }
     return 0;
 }
 

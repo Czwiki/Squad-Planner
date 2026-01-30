@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <unistd.h>
 
+# define MAX_INPUT_SIZE 200
+
 int clean_command (command* cmd) {
     if (cmd->name) free(cmd->name);
     else return 0;
@@ -43,18 +45,15 @@ int main(int argc, char const *argv[])
 
     printf("%s", prompt);
 
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read = 0;
-    while ((read = getline(&line, &len, stdin)) != -1) {        
+    char line[MAX_INPUT_SIZE] = {0};
+    while ((fgets(line, MAX_INPUT_SIZE, stdin)) != NULL) {        
         if (line[0] == '\n') {
             continue;
         }
-        if (line[read - 1] == '\n') {
-            line[read - 1] = '\0';
+        if (line[strlen(line) - 1] == '\n') {
+            line[strlen(line) - 1] = '\0';
         }
         if (strcmp(line, "exit") == 0 ) {
-            free(line);
             free(cmd);
             exit(EXIT_SUCCESS);
         }
@@ -121,7 +120,7 @@ int main(int argc, char const *argv[])
                 break;
             default:
                 // Successful execution
-                if (context == 1 && cmd->id == 1) {
+                if (context == 1 && (cmd->id == 1 || cmd->id == 10)) { // formation command 'new' or 'open'
                     if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", cmd->args[0]) < 0) {
                         perror("Error setting prompt: ");
                         exit(EXIT_FAILURE);
@@ -141,7 +140,6 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
-    free(line);
     free(cmd);
     return 0;
 }

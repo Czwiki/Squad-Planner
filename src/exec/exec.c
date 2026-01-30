@@ -60,8 +60,16 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     case 8: // list
         ret_val = list_players_of_position(args);
         break;
-    case 10: // show
+    case 9: // listf
+        ret_val = list_formations();
+        break;
+    case 10: // open
+        ret_val = open_formation(args[0]);
+        break;
+    case 11: // show
         ret_val = show();
+        break;
+    case 12: // save
         break;
     default:
         break;
