@@ -5,11 +5,11 @@
 #include <errno.h>
 
 static char * positions[] = {"GK", "RB", "RCB", "CB", "LCB", "LB", "RWB", "RCDM", "CDM", "LCDM", "LWB", "RM", "RCM", "CM", "LCM", "LM", "RAM", "RCAM", "CAM", "LCAM", "LAM", "RS", "ST", "LS"};
-static player* players[100] = {NULL}; // Dummy initialization
+static player* player_head = NULL; // Dummy initialization
 
 
-static formation*formation_head = NULL; 
-static formation*current_formation = NULL;
+static formation* formation_head = NULL; 
+static formation* current_formation = NULL;
 
 int parse_position_string(char *position_str) {
     for (int i = 0; i < 24; i++) {
@@ -31,12 +31,12 @@ player* find_player_by_name(char* name) {
     if (!name) {
         return NULL;
     }
-    int i = 0;
-    while (players[i] != NULL) {
-        if (strcmp(players[i]->name, name) == 0) {
-            return players[i];
+    player* current = player_head;
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            return current;
         }
-        i++;
+        current = current->next;
     }
     return NULL; // Player not found
 }
@@ -183,6 +183,7 @@ int new_player(char ** args) {
     if (!args || !args[0] || !args[1] || !args[2] || !args[3] || !args[4]) {
         return -1;
     }
+    printf("Adding player: %s\n", args[0]);
     player *new_p = malloc(sizeof(player));
     if (!new_p) {
         return -1;
@@ -201,7 +202,7 @@ int new_player(char ** args) {
         free(new_p);
         return -1; // Conversion error
     }
-    if (age <= 0 || overall < 0 || potential < 0 || own < 0) {
+    if (age <= 0 || overall < 0 || potential < 0 || own < 0 || overall > 100 || potential > 100 || own > 100) {
         free(new_p->name);
         free(new_p);
         return -2; // Invalid values
@@ -211,9 +212,16 @@ int new_player(char ** args) {
     new_p->potential_rating = potential;
     new_p->own_rating = own;
 
-    int i = 0;
-    while (players[i] != NULL) i++;
-    players[i] = new_p;
+    player* current = player_head;
+    if (!current) {
+        player_head = new_p;
+    } else {
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_p;
+    }
+    new_p->next = NULL;
     return 0;
 }
 
