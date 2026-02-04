@@ -4,11 +4,11 @@
 #include <errno.h>
 #include <stdio.h>
 
-static char *command_inputs_main[3] ={"help","formation","load"};
-static char *command_inputs_formation[14] = {"help","new", "newP","preference", "add", "addP","remove", "removeP", "list", "listf", "open", "show", "save","back"};
-static char *command_inputs_saves[3] = {"help","save", "back"};
+static char* command_inputs_main[3] ={"help","formation","load"};
+static char* command_inputs_formation[14] = {"help","new", "newP","preference", "add", "addP","remove", "removeP", "list", "listf", "open", "show", "save","back"};
+static char* command_inputs_saves[3] = {"help","save", "back"};
 
-int parse_command(const char *line, int current_context, command* cmd){
+int parse_command(const char* line, int current_context, command* cmd){
     if (!cmd) {
         return -1;
     }
@@ -16,7 +16,7 @@ int parse_command(const char *line, int current_context, command* cmd){
     if (!(buffer = strdup(line))) {
         return -1;
     }
-    char ** command_inputs;
+    char** command_inputs;
     int length = 0;
     switch (current_context) {
         case 0:
@@ -45,7 +45,7 @@ int parse_command(const char *line, int current_context, command* cmd){
     int argv0 = 0;
     int options_count = 0;
     int args_count = 0;
-    char *token = strtok(buffer, " ");
+    char* token = strtok(buffer, " ");
     while(token != NULL) {
         // Process each token
         if (argv0 == 0) {
@@ -99,13 +99,13 @@ int parse_command(const char *line, int current_context, command* cmd){
         }
         else {
             if (token[0] == '-') {
-                char *temp = strdup(token);
+                char* temp = strdup(token);
                 if (!temp) {
                     free(buffer);
                     free(cmd->name);
                     return -1;
                 }
-                char **new_opts = realloc(cmd->options, sizeof(char*) * (options_count + 1));
+                char** new_opts = realloc(cmd->options, sizeof(char*) * (options_count + 1));
                 if (!new_opts) {
                     free(buffer);
                     free(temp);
@@ -116,12 +116,12 @@ int parse_command(const char *line, int current_context, command* cmd){
                 options_count++;
             } 
             else {
-                char * temp = strdup(token);
+                char* temp = strdup(token);
                 if (!temp) {
                     free(buffer);
                     return -1;
                 }
-                char **new_args = realloc(cmd->args, sizeof(char*) * (args_count + 1));
+                char** new_args = realloc(cmd->args, sizeof(char*) * (args_count + 1));
                 if (!new_args) {
                     free(buffer);
                     free(temp);

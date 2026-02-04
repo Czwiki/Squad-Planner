@@ -4,14 +4,14 @@
 #include <string.h>
 #include <errno.h>
 
-static char * positions[] = {"GK", "RB", "RCB", "CB", "LCB", "LB", "RWB", "RCDM", "CDM", "LCDM", "LWB", "RM", "RCM", "CM", "LCM", "LM", "RAM", "RCAM", "CAM", "LCAM", "LAM", "RS", "ST", "LS"};
+static char* positions[] = {"GK", "RB", "RCB", "CB", "LCB", "LB", "RWB", "RCDM", "CDM", "LCDM", "LWB", "RM", "RCM", "CM", "LCM", "LM", "RAM", "RCAM", "CAM", "LCAM", "LAM", "RS", "ST", "LS"};
 static player* player_head = NULL; // Dummy initialization
 
 
 static formation* formation_head = NULL; 
 static formation* current_formation = NULL;
 
-int parse_position_string(char *position_str) {
+int parse_position_string(char* position_str) {
     for (int i = 0; i < 24; i++) {
         if (strcmp(positions[i], position_str) == 0) {
             return i;
@@ -109,7 +109,7 @@ int new_formation(char* name) {
     return 0;
 }
 
-int add_position_to_formation(char **position_names) {
+int add_position_to_formation(char** position_names) {
     if (!current_formation || !position_names) {
         return -1;
     }
@@ -146,7 +146,7 @@ int add_position_to_formation(char **position_names) {
     return 0;
 }
 
-int add_player_to_position(char **args) {
+int add_player_to_position(char** args) {
     if (!current_formation || !args || !args[0] || !args[1]) {
         return -1;
     }
@@ -157,11 +157,11 @@ int add_player_to_position(char **args) {
     if (current_formation->map_of_positions[position_id] == NULL) {
         return -2; // Position is empty
     }
-    player *p = find_player_by_name(args[1]);
+    player* p = find_player_by_name(args[1]);
     if (!p) {
         return -2; // Player not found
     }
-    position *pos = current_formation->map_of_positions[position_id];
+    position* pos = current_formation->map_of_positions[position_id];
     // Check for duplicate
     for (int i = 0; i < pos->size_of_list; i++) {
         if (strcmp(pos->list_of_players[i]->name, p->name) == 0) {
@@ -169,7 +169,7 @@ int add_player_to_position(char **args) {
         }
     }
     // Append the player (realloc works with NULL)
-    player **new_list = realloc(pos->list_of_players, sizeof(player*) * (pos->size_of_list + 1));
+    player** new_list = realloc(pos->list_of_players, sizeof(player*) * (pos->size_of_list + 1));
     if (!new_list) {
         return -1; // Memory allocation error
     }
@@ -179,12 +179,12 @@ int add_player_to_position(char **args) {
     return 0;
 }
 
-int new_player(char ** args) {
+int new_player(char** args) {
     if (!args || !args[0] || !args[1] || !args[2] || !args[3] || !args[4]) {
         return -1;
     }
     printf("Adding player: %s\n", args[0]);
-    player *new_p = malloc(sizeof(player));
+    player* new_p = malloc(sizeof(player));
     if (!new_p) {
         return -1;
     }
@@ -225,7 +225,7 @@ int new_player(char ** args) {
     return 0;
 }
 
-int list_players_of_position(char **args) {
+int list_players_of_position(char** args) {
     if (!current_formation || !args || !args[0]) {
         return -1;
     }
@@ -237,7 +237,7 @@ int list_players_of_position(char **args) {
         return -2; // Position is empty
     }
 
-    position *pos = current_formation->map_of_positions[position_id];
+    position* pos = current_formation->map_of_positions[position_id];
     printf("Players for position %s:\n", get_position_name(position_id));
 
     for (int i = 0; i < pos->size_of_list; i++) {
@@ -261,7 +261,7 @@ int list_formations(void) {
     return 0;
 }
 
-int remove_player_from_position(char **args) {
+int remove_player_from_position(char** args) {
     if (!current_formation || !args || !args[0] || !args[1]) {
         return -1;
     }
@@ -272,7 +272,7 @@ int remove_player_from_position(char **args) {
     if (current_formation->map_of_positions[position_id] == NULL) {
         return -2; // Position is empty
     }
-    position *pos = current_formation->map_of_positions[position_id];
+    position* pos = current_formation->map_of_positions[position_id];
     int found_index = -1;
     for (int i = 0; i < pos->size_of_list; i++) {
         if (strcmp(pos->list_of_players[i]->name, args[1]) == 0) {
@@ -292,7 +292,7 @@ int remove_player_from_position(char **args) {
         free(pos->list_of_players);
         pos->list_of_players = NULL;
     } else {
-        player **new_list = realloc(pos->list_of_players, sizeof(player*) * pos->size_of_list);
+        player** new_list = realloc(pos->list_of_players, sizeof(player*) * pos->size_of_list);
         if (new_list) {
             pos->list_of_players = new_list;
         }
@@ -300,7 +300,7 @@ int remove_player_from_position(char **args) {
     return 0;
 }
 
-int preferences(char **options, char **args) {
+int preferences(char** options, char** args) {
     int backwards = 0;
     if (!current_formation) {
         return -1;
@@ -320,7 +320,7 @@ int preferences(char **options, char **args) {
     if (current_formation->map_of_positions[position_id] == NULL) {
         return -2; // Position is empty
     }
-    position *pos = current_formation->map_of_positions[position_id];
+    position* pos = current_formation->map_of_positions[position_id];
     if (pos->size_of_list <= 1) {
         return 0; // No need to sort
     }
@@ -348,7 +348,7 @@ int preferences(char **options, char **args) {
         }
         i++;
     }
-    player **new_list = malloc(sizeof(player*) * pos->size_of_list);
+    player** new_list = malloc(sizeof(player*) * pos->size_of_list);
     if (!new_list) {
         return -1; // Memory allocation error
     }
@@ -365,7 +365,7 @@ int preferences(char **options, char **args) {
     return 0;
 }
 
-int remove_position_from_formation(char **args) {
+int remove_position_from_formation(char** args) {
     if (!current_formation || !args || !args[0]) {
         return -1;
     }
@@ -394,17 +394,17 @@ int show(void) {
     if (!current_formation) {
         return -1;
     }
-    char *empty = " ";
+    char empty = ' ';
     int curr_offset = 0;
     int first0 = 0;
     int first1 = 0;
-    char *to_print[30] = {0};
-    to_print[0] = empty;
-    to_print[1] = empty;
-    to_print[3] = empty;
-    to_print[4] = empty;
-    to_print[25] = empty;
-    to_print[29] = empty;
+    char* to_print[30] = {0};
+    to_print[0] = &empty;
+    to_print[1] = &empty;
+    to_print[3] = &empty;
+    to_print[4] = &empty;
+    to_print[25] = &empty;
+    to_print[29] = &empty;
 
     for (int i = 0; i < 24; i++) {
         if (i >= 0 && !first0){
@@ -418,7 +418,7 @@ int show(void) {
             to_print[i + curr_offset] = current_formation->map_of_positions[i]->name;
         }
         else {
-            to_print[i + curr_offset] = empty;
+            to_print[i + curr_offset] = &empty;
         }
 
         if (!first0){

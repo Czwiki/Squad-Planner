@@ -31,13 +31,13 @@ int clean_command (command* cmd) {
     return 0;
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char const* argv[])
 {
     // command id -1 == exit
     int context = 0; // 0 == main menu, 1 == in formation planner, 2 == load menu
 
     char prompt[60] = "squad-planner - main> ";
-    command *cmd = malloc(sizeof(command));
+    command* cmd = malloc(sizeof(command));
     if (!cmd) {
         perror("Memory allocation error: ");
         exit(EXIT_FAILURE);
