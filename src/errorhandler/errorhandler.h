@@ -1,0 +1,1 @@
+int error_handler (command* cmd, int error_code, int context);

@@ -1,6 +1,6 @@
 #include "../command.h"
-#include "help_commands.h"
-#include "../FormationContext/formation.h"
+#include "../help/help.h"
+#include "../formation/formation.h"
 #include <stdio.h>
 
 int exec_main_command(int cmd_id) {
