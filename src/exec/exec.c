@@ -10,7 +10,7 @@ int exec_main_command(int cmd_id) {
     switch (cmd_id)
     {
     case 0: // help
-        ret_val = print_help_page();
+        ret_val = print_help_page_main();
         break;
     case 1: // new
         printf("Executing 'new' command in main menu.\n");
@@ -31,13 +31,10 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     int ret_val = 0;
     switch (cmd_id) {
     case 0: // help
-        ret_val = print_help_page();
+        ret_val = print_help_page_formation();
         break;
     case 1: // new
-        if (options) {
-            return -2;
-        }
-        ret_val = new_formation(args[0]);
+        ret_val = new_formation(args, options);
         break;
     case 2: // newP
         ret_val = new_player(args);
@@ -46,7 +43,7 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
         ret_val = preferences(options, args);
         break;
     case 4: // add
-        ret_val = add_position_to_formation(args);
+        ret_val = add_position_to_formation(args, options);
         break;
     case 5: // addP
         ret_val = add_player_to_position(args);
@@ -64,7 +61,7 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
         ret_val = list_formations();
         break;
     case 10: // open
-        ret_val = open_formation(args[0]);
+        ret_val = open_formation(args, options);
         break;
     case 11: // show
         ret_val = show();
@@ -92,9 +89,6 @@ int execute_command(command* cmd, int context) {
     printf("Executing command ID %d in context %d\n", cmd->id, context);
     if (!cmd) {
         return -1;
-    }
-    if (cmd->id == 0) {
-        return print_help_page();
     }
     int ret_val = 0;
     switch (context) {

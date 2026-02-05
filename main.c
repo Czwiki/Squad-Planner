@@ -120,7 +120,7 @@ int main(int argc, char const* argv[])
                 break;
             default:
                 // Successful execution
-                if (context == 1 && (cmd->id == 1 || cmd->id == 10)) { // formation command 'new' or 'open'
+                if (context == 1 && (cmd->id == 1 || cmd->id == 10) && cmd->args && cmd->args[0]) { // formation command 'new' or 'open'
                     if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", cmd->args[0]) < 0) {
                         perror("Error setting prompt: ");
                         exit(EXIT_FAILURE);

@@ -134,7 +134,7 @@ int parse_command(const char* line, int current_context, command* cmd){
         }
         token = strtok(NULL, " ");
     }
-    if (cmd->id == 1 && current_context == 1) {
+    /*if (cmd->id == 1 && current_context == 1) {
         // load command in formation context requires exactly one argument
         if (args_count != 1) {
             free(buffer);
@@ -144,7 +144,7 @@ int parse_command(const char* line, int current_context, command* cmd){
             free(buffer);
             return -2;
         }
-    }
+    }*/
 
 
     if (errno !=0 && errno != EINVAL) {

@@ -11,6 +11,33 @@ static player* player_head = NULL; // Dummy initialization
 static formation* formation_head = NULL; 
 static formation* current_formation = NULL;
 
+static int count_tokens(char** args) {
+    int i=0;
+    if(!args) return 0;
+    while(args[i]) i++;
+    return i; 
+    }
+
+static int sanity_check_and_help(char** options, char** args, int expected_args, int expected_options, char* usage, char* description) {
+    if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
+        return -1;
+    }
+    int options_count = count_tokens(options);
+    int args_count = count_tokens(args);
+    if (options_count == 1 && strcmp(options[0], "--help") == 0) {
+        printf("Usage: %s\n%s\n", usage, description);
+        if (fflush(stdout) != 0) {
+            perror("Error flushing stdout: ");
+            return -1;
+        } 
+        return 1; // Help page printed
+    }
+    if (options_count > expected_options || args_count > expected_args) {
+        return -2; // Too many options or arguments
+    }
+    return 0; // Valid input
+}
+
 int parse_position_string(char* position_str) {
     for (int i = 0; i < 24; i++) {
         if (strcmp(positions[i], position_str) == 0) {
@@ -41,14 +68,24 @@ player* find_player_by_name(char* name) {
     return NULL; // Player not found
 }
 
-int open_formation(char* name) {
-    if (!name) {
-        return -1;
+int open_formation(char** args, char** options) {
+    char *usage = "open <formation_name> [--help]";
+    char *description = "Opens the specified formation for editing. The formation must already exist.";
+    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check; // Return -2 for invalid input
     }
+
+    if (!formation_head) {
+        return -2; // No formations available
+    }
+
     formation* previous = formation_head;
     formation* current = previous;
     while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
+        if (strcmp(current->name, args[0]) == 0) {
             // Found the formation
             current_formation = current;
             return 0;
@@ -59,11 +96,20 @@ int open_formation(char* name) {
     return -2; // Formation not found
 }
 
-int new_formation(char* name) {
-    if (!name) {
+int new_formation(char** args, char** options) {
+    if (!args && !options) {
         return -1;
     }
-    if (open_formation(name) == 0) {
+    char *usage = "new <formation_name> [--help]";
+    char *description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation.";
+    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0; // everything is fine
+        return sanity_check; // error
+    }
+
+    if (open_formation(args, NULL) == 0) {
         return -2; // Formation with this name already exists
     }
 
@@ -72,7 +118,7 @@ int new_formation(char* name) {
         if (!formation_head) {
             return -1;
         }
-        formation_head->name = strdup(name);
+        formation_head->name = strdup(args[0]);
         if (!formation_head->name) {
             free(formation_head);
             formation_head = NULL;
@@ -84,7 +130,7 @@ int new_formation(char* name) {
     else {
         formation* current = formation_head;
         while (current->next != NULL) {
-            if (strcmp(current->name, name) == 0) {
+            if (strcmp(current->name, args[0]) == 0) {
                 return -2; // Formation with this name already exists
             }
             current = current->next;
@@ -93,7 +139,7 @@ int new_formation(char* name) {
         if (!new_form) {
             return -1;
         }
-        new_form->name = strdup(name);
+        new_form->name = strdup(args[0]);
         if (!new_form->name) {
             free(new_form);
             return -1;
@@ -109,14 +155,28 @@ int new_formation(char* name) {
     return 0;
 }
 
-int add_position_to_formation(char** position_names) {
-    if (!current_formation || !position_names) {
+int add_position_to_formation(char** args, char** options) {
+    char *usage = "add <position_names>[1-11] [--help]";
+    char *description = "Adds the specified positions to the current formation. The formation must already exist.";
+    int sanity_check = sanity_check_and_help(options, args, 11, 1, usage, description);
+
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check; // Return -2 for invalid input
+    }
+
+    if (!formation_head) {
+        return -2; // No formations available
+    }
+    
+    if (!current_formation) {
         return -1;
     }
     // Find the position ID based on the name
+    // args contains the position names to be added to the formation
     int k = 0;
-    while (position_names[k] != NULL) {
-        int position_id = parse_position_string(position_names[k]);
+    while (args[k] != NULL) {
+        int position_id = parse_position_string(args[k]);
         if (position_id == -1) {
             return -2; // Position not found
         }

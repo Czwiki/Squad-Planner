@@ -1,22 +1,22 @@
 CC = gcc
 CFLAGS = -pedantic -Wall -Werror
 
-main_run: main.o parser.o exec.o help_commands.o formation.o
-	$(CC) $(CFLAGS) main.o parser.o exec.o help_commands.o formation.o -o main
+main_run: main.o parser.o exec.o help.o formation.o
+	$(CC) $(CFLAGS) main.o parser.o exec.o help.o formation.o -o main
 	rm main.o
 	rm parser.o
 	rm exec.o
-	rm help_commands.o
+	rm help.o
 	rm formation.o
 	./main
 	rm main
 
-main: main.o parser.o exec.o help_commands.o formation.o
-	$(CC) $(CFLAGS) main.o parser.o exec.o help_commands.o formation.o -o main
+main: main.o parser.o exec.o help.o formation.o
+	$(CC) $(CFLAGS) main.o parser.o exec.o help.o formation.o -o main
 	rm main.o
 	rm parser.o
 	rm exec.o
-	rm help_commands.o
+	rm help.o
 	rm formation.o
 
 exec.o: src/exec/exec.c formation.o
@@ -28,17 +28,17 @@ main.o: main.c
 parser.o: src/parser/parser.c
 	$(CC) $(CFLAGS) -c src/parser/parser.c -o parser.o
 
-help_commands.o: src/exec/help_commands.c
-	$(CC) $(CFLAGS) -c src/exec/help_commands.c -o help_commands.o
+help.o: src/help/help.c
+	$(CC) $(CFLAGS) -c src/help/help.c -o help.o
 
-formation.o: src/FormationContext/formation.c
-	$(CC) $(CFLAGS) -c src/FormationContext/formation.c -o formation.o
+formation.o: src/formation/formation.c
+	$(CC) $(CFLAGS) -c src/formation/formation.c -o formation.o
 
 clean:
 	rm -f main.o
 	rm -f parser.o
 	rm -f exec.o
-	rm -f help_commands.o
+	rm -f help.o
 	rm -f formation.o
 	rm -f main
 
