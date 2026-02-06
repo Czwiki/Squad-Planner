@@ -4,3 +4,6 @@ main
 
 # Save files
 squad_planner_data.txt
+
+# CodeQL artifacts
+_codeql*
