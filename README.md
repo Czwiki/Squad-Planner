@@ -80,7 +80,7 @@ squad-planner - '4-3-3' formation> show
                          
       LCM   CM    RCM             
                          
-LB    LCB   CB    RB              
+   LB    LCB   RCB    RB              
             GK                    
 
 squad-planner - '4-3-3' formation> newP Messi 36 88 88 95
