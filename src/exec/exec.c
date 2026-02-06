@@ -28,7 +28,7 @@
  * Handles commands available in the main menu:
  * - help: Display main menu help
  * - formation: (handled via context switch)
- * - load: (handled via context switch)
+ * - load: (placeholder for future implementation)
  * 
  * @param cmd_id Command identifier (index in command list)
  * @return 0 on success, negative on error
@@ -42,8 +42,8 @@ int exec_main_command(int cmd_id) {
     case 1:  /* formation - context switch handled by main */
         printf("Entering formation planner...\n");
         break;
-    case 2:  /* load - load saved data */
-        ret_val = load_data();
+    case 2:  /* load - TODO: implement persistence */
+        printf("Load functionality not yet implemented.\n");
         break;
     default:
         break;
@@ -101,8 +101,8 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     case 11:  /* show */
         ret_val = show();
         break;
-    case 12:  /* save */
-        ret_val = save_data();
+    case 12:  /* save - TODO: implement persistence */
+        printf("Save functionality not yet implemented.\n");
         break;
     default:
         break;
@@ -115,6 +115,7 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
  * @brief Execute a command in the saves/load menu context.
  * 
  * Handles commands for saving and loading data.
+ * TODO: Implement actual persistence functionality.
  * 
  * @param cmd_id Command identifier
  * @param args Array of argument strings
@@ -129,8 +130,8 @@ int exec_load_command(int cmd_id, char** args) {
         printf("2. save - Save all data to file\n");
         printf("3. back - Return to main menu\n");
         break;
-    case 1:  /* save */
-        ret_val = save_data();
+    case 1:  /* save - TODO: implement persistence */
+        printf("Save functionality not yet implemented.\n");
         break;
     case 2:  /* back - handled via context switch */
         break;

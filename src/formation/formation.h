@@ -39,10 +39,6 @@ int remove_player_from_position(char** args);
 int remove_position_from_formation(char** args);
 int preferences(char** options, char** args);
 
-/* Data persistence functions */
-int save_data(void);
-int load_data(void);
-
 /* Utility functions */
 player* find_player_by_name(char* name);
 char* get_position_name(int position_id);

@@ -21,7 +21,7 @@ int print_help_page_main(void) {
     printf("Available commands in the main menu:\n");
     printf("1. help      - Display this help page\n");
     printf("2. formation - Enter the formation planning menu\n");
-    printf("3. load      - Load saved data from file\n");
+    printf("3. load      - Load saved data from file (not yet implemented)\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
@@ -54,7 +54,7 @@ int print_help_page_formation(void) {
     printf("10. listf     - List all formations\n");
     printf("11. open      - Open a formation file\n");
     printf("12. show      - Show the current formation in tactical view\n");
-    printf("13. save      - Save the current formation\n");
+    printf("13. save      - Save the current formation (not yet implemented)\n");
     printf("14. back      - Return to the main menu\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
