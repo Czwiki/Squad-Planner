@@ -1,12 +1,27 @@
+/**
+ * @file help.c
+ * @brief Help system for the Squad-Planner application.
+ * 
+ * Provides help pages for each application context, listing
+ * available commands and their descriptions.
+ */
+
 #include <stdio.h>
 
+/**
+ * @brief Display the main menu help page.
+ * 
+ * Shows all commands available in the main menu context.
+ * 
+ * @return 0 on success, -1 on output error
+ */
 int print_help_page_main(void) {
     printf("Main menu Help Page\n");
     printf("-------------------\n");
     printf("Available commands in the main menu:\n");
-    printf("1. help - Display this help page\n");
-    printf("2. new  - Create a new squad formation\n");
-    printf("3. load - Load an existing squad formation\n");
+    printf("1. help      - Display this help page\n");
+    printf("2. formation - Enter the formation planning menu\n");
+    printf("3. load      - Load saved data from file\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
@@ -15,6 +30,14 @@ int print_help_page_main(void) {
     return 0;
 }
 
+/**
+ * @brief Display the formation menu help page.
+ * 
+ * Shows all commands available in the formation menu context,
+ * including formation management and player assignment commands.
+ * 
+ * @return 0 on success, -1 on output error
+ */
 int print_help_page_formation(void) {
     printf("Formation menu Help Page\n");
     printf("------------------------\n");
