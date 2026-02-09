@@ -72,34 +72,34 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
         ret_val = new_formation(args, options);
         break;
     case 2:   /* newP */
-        ret_val = new_player(args);
+        ret_val = new_player(args, options);
         break;
     case 3:   /* preference */
-        ret_val = preferences(options, args);
+        ret_val = preferences(args, options);
         break;
     case 4:   /* add */
         ret_val = add_position_to_formation(args, options);
         break;
     case 5:   /* addP */
-        ret_val = add_player_to_position(args);
+        ret_val = add_player_to_position(args, options);
         break;
     case 6:   /* remove */
-        ret_val = remove_position_from_formation(args);
+        ret_val = remove_position_from_formation(args, options);
         break;
     case 7:   /* removeP */
-        ret_val = remove_player_from_position(args);
+        ret_val = remove_player_from_position(args, options);
         break;
     case 8:   /* list */
-        ret_val = list_players_of_position(args);
+        ret_val = list_players_of_position(args, options);
         break;
     case 9:   /* listf */
-        ret_val = list_formations();
+        ret_val = list_formations(options);
         break;
     case 10:  /* open */
         ret_val = open_formation(args, options);
         break;
     case 11:  /* show */
-        ret_val = show();
+        ret_val = show(options);
         break;
     case 12:  /* save - TODO: implement persistence */
         printf("Save functionality not yet implemented.\n");

@@ -84,9 +84,6 @@ static int count_tokens(char** args) {
  */
 static int sanity_check_and_help(char** options, char** args, int expected_args, 
                                   int expected_options, char* usage, char* description) {
-    if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
-        return -1;
-    }
     int options_count = count_tokens(options);
     int args_count = count_tokens(args);
     if (options_count == 1 && strcmp(options[0], "--help") == 0) {
@@ -163,6 +160,12 @@ player* find_player_by_name(char* name) {
  * @return 0 on success, -2 if formation not found or no formations exist
  */
 int open_formation(char** args, char** options) {
+    if (!args && !options) {
+        return -2; 
+    }
+    if (!formation_head) {
+        return -2;  /* No formations available */
+    }    
     char *usage = "open <formation_name> [--help]";
     char *description = "Opens the specified formation for editing. The formation must already exist.";
     int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
@@ -170,10 +173,6 @@ int open_formation(char** args, char** options) {
     if (sanity_check != 0) {
         if (sanity_check == 1) return 0;
         return sanity_check;
-    }
-
-    if (!formation_head) {
-        return -2;  /* No formations available */
     }
 
     formation* previous = formation_head;
@@ -202,7 +201,7 @@ int open_formation(char** args, char** options) {
  */
 int new_formation(char** args, char** options) {
     if (!args && !options) {
-        return -1;
+        return -2;
     }
     char *usage = "new <formation_name> [--help]";
     char *description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation.";
@@ -276,6 +275,9 @@ int new_formation(char** args, char** options) {
  * @return 0 on success, -1 on memory error, -2 on invalid input
  */
 int add_position_to_formation(char** args, char** options) {
+    if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
+        return -2;
+    }
     char *usage = "add <position_names>[1-11] [--help]";
     char *description = "Adds the specified positions to the current formation. The formation must already exist.";
     int sanity_check = sanity_check_and_help(options, args, 11, 1, usage, description);
@@ -285,12 +287,8 @@ int add_position_to_formation(char** args, char** options) {
         return sanity_check;
     }
 
-    if (!formation_head) {
-        return -2;  /* No formations available */
-    }
-    
-    if (!current_formation) {
-        return -1;
+    if (!formation_head || !current_formation) {
+        return -2;  /* No formations available  or none selected*/
     }
     
     /* Add each position specified in args */
@@ -329,52 +327,6 @@ int add_position_to_formation(char** args, char** options) {
 }
 
 /**
- * @brief Add a player to a specific position in the current formation.
- * 
- * Assigns an existing player to a position's candidate list.
- * The position must exist in the formation and the player must exist
- * in the global player list.
- * 
- * @param args Array: args[0] = position name, args[1] = player name
- * 
- * @return 0 on success, -1 if null args, -2 if position/player not found
- */
-int add_player_to_position(char** args) {
-    if (!current_formation || !args || !args[0] || !args[1]) {
-        return -1;
-    }
-    int position_id = parse_position_string(args[0]);
-    if (position_id == -1) {
-        return -2;  /* Position not found */
-    }
-    if (current_formation->map_of_positions[position_id] == NULL) {
-        return -2;  /* Position not assigned in formation */
-    }
-    player* p = find_player_by_name(args[1]);
-    if (!p) {
-        return -2;  /* Player not found */
-    }
-    position* pos = current_formation->map_of_positions[position_id];
-    
-    /* Check for duplicate - player already in position */
-    for (int i = 0; i < pos->size_of_list; i++) {
-        if (strcmp(pos->list_of_players[i]->name, p->name) == 0) {
-            return -2;  /* Player already in the position's list */
-        }
-    }
-    
-    /* Append the player to the position's list */
-    player** new_list = realloc(pos->list_of_players, sizeof(player*) * (pos->size_of_list + 1));
-    if (!new_list) {
-        return -1;
-    }
-    new_list[pos->size_of_list] = p;
-    pos->list_of_players = new_list;
-    pos->size_of_list = pos->size_of_list + 1;
-    return 0;
-}
-
-/**
  * @brief Create a new player and add to the global player list.
  * 
  * Creates a player with the specified attributes and adds them
@@ -385,10 +337,18 @@ int add_player_to_position(char** args) {
  * 
  * @return 0 on success, -1 on memory/null error, -2 on invalid values
  */
-int new_player(char** args) {
-    if (!args || !args[0] || !args[1] || !args[2] || !args[3] || !args[4]) {
-        return -1;
+int new_player(char** args, char** options) {
+    if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
+        return -2;
     }
+    char *usage = "newP <name> <age> <overall> <potential> <own> [--help]";
+    char *description = "Creates a new player with the specified attributes and adds them to the global player list.";
+    int sanity_check = sanity_check_and_help(options, args, 5, 1, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check;
+    }
+
     printf("Adding player: %s\n", args[0]);
     player* new_p = malloc(sizeof(player));
     if (!new_p) {
@@ -440,6 +400,65 @@ int new_player(char** args) {
 }
 
 /**
+ * @brief Add a player to a specific position in the current formation.
+ * 
+ * Assigns an existing player to a position's candidate list.
+ * The position must exist in the formation and the player must exist
+ * in the global player list.
+ * 
+ * @param args Array: args[0] = position name, args[1] = player name
+ * 
+ * @return 0 on success, -1 if null args, -2 if position/player not found
+ */
+int add_player_to_position(char** args, char **options) {
+    if (!current_formation) {
+        return -2;
+    }
+    if (!args && !options) {
+        return -2;
+    }
+
+    char *usage = "addP <position_name> <player_name> [--help]";
+    char *description = "Adds the specified player to the candidate list for the specified position in the current formation. The position must already be assigned in the formation, and the player must exist in the global player list.";
+    int sanity_check = sanity_check_and_help(options, args, 2, 1, usage, description);
+
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check;
+    }
+
+    int position_id = parse_position_string(args[0]);
+    if (position_id == -1) {
+        return -2;  /* Position not found */
+    }
+    if (current_formation->map_of_positions[position_id] == NULL) {
+        return -2;  /* Position not assigned in formation */
+    }
+    player* p = find_player_by_name(args[1]);
+    if (!p) {
+        return -2;  /* Player not found */
+    }
+    position* pos = current_formation->map_of_positions[position_id];
+    
+    /* Check for duplicate - player already in position */
+    for (int i = 0; i < pos->size_of_list; i++) {
+        if (strcmp(pos->list_of_players[i]->name, p->name) == 0) {
+            return -2;  /* Player already in the position's list */
+        }
+    }
+    
+    /* Append the player to the position's list */
+    player** new_list = realloc(pos->list_of_players, sizeof(player*) * (pos->size_of_list + 1));
+    if (!new_list) {
+        return -1;
+    }
+    new_list[pos->size_of_list] = p;
+    pos->list_of_players = new_list;
+    pos->size_of_list = pos->size_of_list + 1;
+    return 0;
+}
+
+/**
  * @brief List all players assigned to a specific position.
  * 
  * Displays the names of all players in a position's candidate list.
@@ -448,9 +467,20 @@ int new_player(char** args) {
  * 
  * @return 0 on success, -1 if null args, -2 if position not found
  */
-int list_players_of_position(char** args) {
-    if (!current_formation || !args || !args[0]) {
-        return -1;
+int list_players_of_position(char** args, char** options) {
+    if (!current_formation) {
+        return -2;
+    }
+    if (!args && !options) {
+        return -2;
+    }
+
+    char *usage = "list <position_name> [--help]";
+    char *description = "List all players assigned to the specified position in the current formation.";
+    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check;
     }
     int position_id = parse_position_string(args[0]);
     if (position_id == -1) {
@@ -477,7 +507,18 @@ int list_players_of_position(char** args) {
  * 
  * @return 0 always
  */
-int list_formations(void) {
+int list_formations(char** options) {
+    if (!current_formation) {
+        return -2;
+    }    
+    
+    char *usage = "listf [--help]";
+    char *description = "Displays the names of all formations in the formation list.";
+    int sanity_check = sanity_check_and_help(options, NULL, 0, 1, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check;
+    }
     formation* current = formation_head;
     if (!current) {
         printf("No formations available.\n");
@@ -501,10 +542,22 @@ int list_formations(void) {
  * 
  * @return 0 on success, -1 if null args, -2 if position/player not found
  */
-int remove_player_from_position(char** args) {
-    if (!current_formation || !args || !args[0] || !args[1]) {
-        return -1;
+int remove_player_from_position(char** args, char** options) {
+    if (!current_formation) {
+        return -2;
     }
+    if (!args && !options) {
+        return -2;
+    }
+
+    char *usage = "removeP <position_name> <player_name> [--help]";
+    char *description = "Removes the specified player from the candidate list of the specified position.";
+    int sanity_check = sanity_check_and_help(options, args, 2, 1, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check;
+    }
+
     int position_id = parse_position_string(args[0]);
     if (position_id == -1) {
         return -2;  /* Position not found */
@@ -556,32 +609,42 @@ int remove_player_from_position(char** args) {
  * 
  * @return 0 on success, -1 if null args/memory error, -2 if position/player not found
  */
-int preferences(char** options, char** args) {
-    int backwards = 0;
+int preferences(char** args, char** options) {
     if (!current_formation) {
-        return -1;
+        return -2;  /* No formation currently open */
     }
-    if (!args || !args[0]) {
-        return -1;
+    if (!args && !options) { 
+        return -2;
     }
-    
+    int position_id = parse_position_string(args[0]);
+    if (position_id == -1) {
+        return -2;  /* Position not found */
+    }
+    char *usage = "preference <position> [player1 player2 ...] [-reverse] [--help]";
+    char *description = "Reorder players in a position based on specified preference order. Use -reverse to invert the order.";
+    int sanity = sanity_check_and_help(options, args, current_formation->map_of_positions[position_id]->size_of_list, 1, usage, description);
+    if (sanity != 0) {
+        if (sanity == 1) return 0;
+        return sanity;
+    }
     /* Check for -reverse option */
-    if (options && options[0]) {
+    int backwards = 0;
+    if (options[0]) {
         if (strcmp(options[0], "-reverse") == 0) {
             backwards = 1;
         }
     }
     
-    int position_id = parse_position_string(args[0]);
-    if (position_id == -1) {
-        return -2;  /* Position not found */
-    }
     if (current_formation->map_of_positions[position_id] == NULL) {
         return -2;  /* Position not assigned */
     }
     
     position* pos = current_formation->map_of_positions[position_id];
-    if (pos->size_of_list <= 1) {
+    if (pos->size_of_list == 0) {
+        return -2;  /* No players to reorder */
+    }
+    
+    if (pos->size_of_list == 1) {
         return 0;  /* No reordering needed */
     }
 
@@ -640,9 +703,20 @@ int preferences(char** options, char** args) {
  * 
  * @return 0 on success, -1 if null args, -2 if has players, -3 if not found
  */
-int remove_position_from_formation(char** args) {
-    if (!current_formation || !args || !args[0]) {
-        return -1;
+int remove_position_from_formation(char** args, char** options) {
+    if (!current_formation) {
+        return -2;  /* No formation currently open */
+    }
+    if (!args && !options) {
+        return -2;
+    }
+
+    char *usage = "remove <position_name> [--help]";
+    char *description = "Removes the specified position from the current formation. Position must not have players assigned.";
+    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check;
     }
     
     /* Check if any position has players assigned */
@@ -677,56 +751,71 @@ int remove_position_from_formation(char** args) {
  * The display is a 6x5 grid representing a soccer pitch from
  * goal to goal, with positions placed according to their roles.
  * 
- * @return 0 on success, -1 if no current formation
+ * @return 0 on success, - 1 if technical errors, -2 if no current formation
  */
-int show(void) {
+int show(char** options) {
     if (!current_formation) {
+        return -2;  /* No formation currently open */
+    }
+
+    char *usage = "show [--help]";
+    char *description = "Display the current formation in a tactical view.";
+    int sanity_check = sanity_check_and_help(options, NULL, 0, 1, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return 0;
+        return sanity_check;
+    }
+
+    /* Fixed 6 rows x 5 columns grid to ensure column alignment.
+       Rows: 0 (forwards) ... 5 (goalkeeper). Columns 0..4.
+       Forwards occupy middle 3 columns; GK sits behind central CB.
+    */
+    char empty_str[] = " ";
+    char* grid[6][5];
+    /* Helper to get position name or empty */
+    #define POS_NAME(idx) (current_formation->map_of_positions[idx] ? current_formation->map_of_positions[idx]->name : empty_str)
+
+    /* Row 0: Forwards (RS, ST, LS) centered */
+    grid[0][0] = empty_str;
+    grid[0][1] = POS_NAME(21); /* RS */
+    grid[0][2] = POS_NAME(22); /* ST */
+    grid[0][3] = POS_NAME(23); /* LS */
+    grid[0][4] = empty_str;
+
+    /* Fill all cells with empty by default */
+    for (int r = 0; r < 6; r++) {
+        for (int c = 0; c < 5; c++) {
+            grid[r][c] = empty_str;
+        }
+    }
+
+    /* Row 0: Forwards (RS, ST, LS) centered in columns 1..3 */
+    grid[0][1] = POS_NAME(21);
+    grid[0][2] = POS_NAME(22);
+    grid[0][3] = POS_NAME(23);
+
+    /* Rows 1..4: contiguous 5-position blocks starting at 16,11,6,1 */
+    for (int r = 1; r <= 4; r++) {
+        int start_index = 16 - (r - 1) * 5; /* r=1->16, r=2->11, r=3->6, r=4->1 */
+        for (int c = 0; c < 5; c++) {
+            grid[r][c] = POS_NAME(start_index + c);
+        }
+    }
+
+    /* Row 5: Goalkeeper centered behind central defender (CB at col 2) */
+    grid[5][2] = POS_NAME(0); /* GK */
+
+    /* Print rows top (forwards) to bottom (goalkeeper) with fixed column width */
+    for (int r = 0; r < 6; r++) {
+        for (int c = 4; c >= 0; c--) {
+            printf("%-6s", grid[r][c]);
+        }
+        printf("\n");
+    }
+    #undef POS_NAME
+    if (fflush(stdout) != 0) {
+        perror("Error flushing stdout: ");
         return -1;
     }
-    
-    char empty = ' ';
-    int curr_offset = 0;
-    int first0 = 0;
-    int first1 = 0;
-    char* to_print[30] = {0};
-    
-    /* Initialize corner slots to empty */
-    to_print[0] = &empty;
-    to_print[1] = &empty;
-    to_print[3] = &empty;
-    to_print[4] = &empty;
-    to_print[25] = &empty;
-    to_print[29] = &empty;
-
-    /* Map positions to display grid */
-    for (int i = 0; i < 24; i++) {
-        if (i >= 0 && !first0) {
-            curr_offset += 2;
-        }
-        if (i >= 21 && !first1) {
-            curr_offset += 1;
-            first1 = 1;
-        }
-        if (current_formation->map_of_positions[i] != NULL) {
-            to_print[i + curr_offset] = current_formation->map_of_positions[i]->name;
-        }
-        else {
-            to_print[i + curr_offset] = &empty;
-        }
-
-        if (!first0) {
-            curr_offset += 2;
-            first0 = 1;
-        }
-    }
-    
-    /* Print grid from top to bottom (forwards to goalkeeper) */
-    for (int i = 30; i > 0; i--) {
-        if (i % 5 == 0 && i != 0) {
-            printf("\n");
-        }
-        printf("%-6s", to_print[i-1]);
-    } 
-    printf("\n");
     return 0;
 }
