@@ -18,15 +18,11 @@
  * - Commands follow the format: <command_name> [options...] [arguments...]
  * - Options start with '-' (e.g., --help, -reverse)
  * - Arguments are space-separated tokens that don't start with '-'
- * 
- * Error Codes:
- * - Returns  0 on success
- * - Returns -1 on memory allocation failure or internal error
- * - Returns -2 on invalid command format
- * - Returns -3 when command is not recognized in current context
+ * - The parser populates a command struct with the command ID, name, options,
  */
 
-#include "parser.h"
+#include "../command.h"
+#include "../error/error.h"
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -93,19 +89,14 @@ static char* command_inputs_saves[3] = {"help", "save", "back"};
  * @param line The input string to parse (will not be modified)
  * @param current_context The current menu context (0=main, 1=formation, 2=saves)
  * @param cmd Pointer to command structure to populate with parsed data
- * 
- * @return 0 on success
- * @return -1 on memory allocation failure or if cmd is NULL
- * @return -2 on invalid command format (e.g., starts with '-')
- * @return -3 when command is not recognized in current context
- * 
+
  * @note The caller is responsible for freeing the allocated memory in cmd
  *       (name, options array and its elements, args array and its elements)
  */
 int parse_command(const char* line, int current_context, command* cmd) {
     /* Validate that we have a valid command structure to populate */
     if (!cmd) {
-        return -1;
+        return SP_ERR_INTERNAL;
     }
     
     /* 
@@ -114,7 +105,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
      */
     char* buffer = NULL;
     if (!(buffer = strdup(line))) {
-        return -1;
+        return SP_ERR_MEMORY;  /* Memory allocation failed */
     }
     
     /*
@@ -138,7 +129,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
             break;
         default:
             free(buffer);
-            return -2;
+            return SP_ERR_INTERNAL;  /* Invalid context */
     }
 
     /* Track potential context changes triggered by this command */
@@ -168,7 +159,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
              */
             if (token[0] == '-') {
                 free(buffer);
-                return -2;
+                return SP_ERR_INVALID_CMD;  /* Command cannot start with '-' */
             }
             
             /* Search for the command name in the valid commands list */
@@ -213,18 +204,22 @@ int parse_command(const char* line, int current_context, command* cmd) {
             /* Command not found in valid commands for this context */
             if (!found) {
                 free(buffer);
-                return -3;
+                return SP_ERR_INVALID_CMD;
             }
             
             /* Store a copy of the command name */
             cmd->name = strdup(token);
             if (!cmd->name) {
                 free(buffer);
-                return -1;
+                return SP_ERR_MEMORY;
             }
             argv0++;  /* Mark that we've processed the command name */
         }
         else {
+            if (current_context == 0) {
+                free(buffer);
+                return SP_ERR_INVALID_CMD;  /* Main menu commands cannot have arguments */
+            }
             /*
              * Processing subsequent tokens (options and arguments).
              * Options start with '-', everything else is an argument.
@@ -235,7 +230,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                 if (!temp) {
                     free(buffer);
                     free(cmd->name);
-                    return -1;
+                    return SP_ERR_MEMORY;
                 }
                 
                 /* Grow the options array to accommodate the new option */
@@ -243,7 +238,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                 if (!new_opts) {
                     free(buffer);
                     free(temp);
-                    return -1;
+                    return SP_ERR_MEMORY;
                 }
                 cmd->options = new_opts;
                 cmd->options[options_count] = temp;
@@ -254,7 +249,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                 char* temp = strdup(token);
                 if (!temp) {
                     free(buffer);
-                    return -1;
+                    return SP_ERR_MEMORY;
                 }
                 
                 /* Grow the args array to accommodate the new argument */
@@ -262,7 +257,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                 if (!new_args) {
                     free(buffer);
                     free(temp);
-                    return -1;
+                    return SP_ERR_MEMORY;
                 }
                 cmd->args = new_args;
                 cmd->args[args_count] = temp;
@@ -298,7 +293,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
         free(cmd->options);
         for (int j = 0; j < args_count; j++) free(cmd->args[j]);
         free(cmd->args);
-        return -1;
+        return SP_ERR_INTERNAL;  /* Internal error during parsing */
     }
     
     /*
@@ -310,7 +305,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
         char** new_opts = realloc(cmd->options, sizeof(char*) * (options_count + 1));
         if (!new_opts) {
             free(buffer);
-            return -1;
+            return SP_ERR_MEMORY;
         }
         cmd->options = new_opts;
         cmd->options[options_count] = NULL;  /* NULL terminator */
@@ -319,7 +314,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
         char** new_args = realloc(cmd->args, sizeof(char*) * (args_count + 1));
         if (!new_args) {
             free(buffer);
-            return -1;
+            return SP_ERR_MEMORY;
         }
         cmd->args = new_args;
         cmd->args[args_count] = NULL;  /* NULL terminator */
@@ -327,5 +322,5 @@ int parse_command(const char* line, int current_context, command* cmd) {
     
     free(buffer);
     cmd->future_context = new_context;  /* Store the determined context transition */
-    return 0;  /* Success */
+    return SP_SUCCESS;  /* Success */
 }

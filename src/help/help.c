@@ -22,7 +22,7 @@ int print_help_page_main(void) {
     printf("1. help      - Display this help page\n");
     printf("2. formation - Enter the formation planning menu\n");
     printf("3. load      - Load saved data from file (not yet implemented)\n");
-    printf("For help on explicit commands, type '<command> --help'\n");
+    printf("These commands allow you to navigate to different parts of the application. They do not accept arguments or options.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
         return -1;

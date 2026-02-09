@@ -1,5 +1,6 @@
 #include "src/parser/parser.h"
 #include "src/exec/exec.h"
+#include "src/error/error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +54,10 @@ int main(int argc, char const* argv[])
         if (line[strlen(line) - 1] == '\n') {
             line[strlen(line) - 1] = '\0';
         }
+        else {
+            fprintf(stderr, "Input line too long, maximum size is %d characters\n", MAX_INPUT_SIZE - 1);
+            continue;
+        }
         if (strcmp(line, "exit") == 0 ) {
             free(cmd);
             exit(EXIT_SUCCESS);
@@ -61,18 +66,19 @@ int main(int argc, char const* argv[])
         int executing = 1;
         
         switch (parse_command(line, context, cmd)) { // all cases mutually exclusive
-        case -1:
+        case SP_ERR_MEMORY:
             clean_command(cmd);
             perror("Error parsing command: ");
             exit(EXIT_FAILURE);
             break;
-        case -2:
+        case SP_ERR_INTERNAL:
+            clean_command(cmd);
+            fprintf(stderr, "Internal error occurred while parsing command\n");
+            exit(EXIT_FAILURE);
+            break;
+        case SP_ERR_INVALID_CMD:
             /* code */
             fprintf(stderr, "Invalid command format\n");
-            executing = 0;
-            break;
-        case -3:
-            fprintf(stderr, "Unknown command in this environment\n");
             executing = 0;
             break;
         default: // just for the top 4 cases to change context
@@ -111,15 +117,8 @@ int main(int argc, char const* argv[])
         if (executing){      
             printf("Command ID: %d, Name: %s\n", cmd->id, cmd->name);
             int ret_val = execute_command(cmd, context);
-            switch (ret_val) {
-            case -1:
-                fprintf(stderr, "Error executing command\n");
-                break;
-            case -2:
-                fprintf(stderr, "Invalid command options/arguments\n");
-                break;
-            default:
-                // Successful execution
+            printf("%s\n", sp_error_string(ret_val));
+            if (ret_val == SP_SUCCESS) {
                 if (context == 1 && (cmd->id == 1 || cmd->id == 10) && cmd->args && cmd->args[0]) { // formation command 'new' or 'open'
                     if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", cmd->args[0]) < 0) {
                         perror("Error setting prompt: ");
@@ -127,9 +126,7 @@ int main(int argc, char const* argv[])
                     }
                     printf("In formation context\n");
                 }
-                break;
             }
-
         }
         printf("%s", prompt);
         clean_command(cmd);
