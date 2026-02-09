@@ -187,6 +187,9 @@ int parse_command(const char* line, int current_context, command* cmd) {
                             new_context = 1;  /* 'formation' -> enter formation menu */
                         }
                         /* Note: 'load' (i==2) no longer changes context - it loads directly */
+                        else if (i == 2) {
+                            new_context = 2;  /* 'load' -> enter saves/load menu */
+                        }
                         break;
                     case 1:  /* Formation menu */
                         if (i == 13) {

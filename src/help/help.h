@@ -18,4 +18,10 @@ int print_help_page_main(void);
  */
 int print_help_page_formation(void);
 
+/**
+ * @brief Display the saves menu help page.
+ * @return 0 on success, -1 on error
+ */
+int print_help_page_saves(void);
+
 #endif /* HELP_H */

@@ -39,12 +39,6 @@ int exec_main_command(int cmd_id) {
     case 0:  /* help */
         ret_val = print_help_page_main();
         break;
-    case 1:  /* formation - context switch handled by main */
-        printf("Entering formation planner...\n");
-        break;
-    case 2:  /* load - TODO: implement persistence */
-        printf("Load functionality not yet implemented.\n");
-        break;
     default:
         break;
     }
@@ -125,10 +119,7 @@ int exec_load_command(int cmd_id, char** args) {
     int ret_val = 0;
     switch (cmd_id) {
     case 0:  /* help */
-        printf("Saves menu commands:\n");
-        printf("1. help - Display this help\n");
-        printf("2. save - Save all data to file\n");
-        printf("3. back - Return to main menu\n");
+        ret_val = print_help_page_saves();
         break;
     case 1:  /* save - TODO: implement persistence */
         printf("Save functionality not yet implemented.\n");

@@ -63,3 +63,18 @@ int print_help_page_formation(void) {
     }
     return 0;
 }
+
+int print_help_page_saves(void) {
+    printf("Saves menu Help Page\n");
+    printf("-------------------\n");
+    printf("Available commands in the saves menu:\n");
+    printf("1. help - Display this help\n");
+    printf("2. save - Save all data to file (not yet implemented)\n");
+    printf("3. back - Return to main menu\n");
+    printf("For help on explicit commands, type '<command> --help'\n");
+    if (fflush(stdout) != 0) {
+        perror("Error flushing stdout: ");
+        return -1;
+    }
+    return 0;
+}
