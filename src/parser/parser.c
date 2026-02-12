@@ -104,6 +104,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
      * strtok() modifies the string in place, so we cannot use the original.
      */
     char* buffer = NULL;
+    errno = 0; /* clear errno before parsing/tokenization */
     if (!(buffer = strdup(line))) {
         return SP_ERR_MEMORY;  /* Memory allocation failed */
     }
@@ -267,25 +268,6 @@ int parse_command(const char* line, int current_context, command* cmd) {
         token = strtok(NULL, " ");  /* Get next token */
     }
     
-    /*
-     * Note: The following validation code was commented out but could be
-     * enabled for stricter argument validation per command.
-     */
-    /*if (cmd->id == 1 && current_context == 1) {
-        if (args_count != 1) {
-            free(buffer);
-            return -2;
-        }
-        if (strlen(cmd->args[0]) > 32) {
-            free(buffer);
-            return -2;
-        }
-    }*/
-
-    /*
-     * Check for any system errors that occurred during parsing.
-     * EINVAL is acceptable (no conversion in strtok), but other errors indicate failure.
-     */
     if (errno != 0 && errno != EINVAL) {
         free(buffer);
         free(cmd->name);
