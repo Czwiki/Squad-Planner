@@ -25,6 +25,10 @@
  * - ID 9: listf (list_formations)
  * - ID 10: open (open_formation)
  * - ID 11: show (show)
+ * - ID 12: deletef (remove_formation)
+ * - ID 13: deleteP (remove_player)
+ * - ID 14: save (transitions to saves menu)
+ * - ID 15: back (returns to main menu)
  *
  * Data Structures:
  * - Formations are stored as a linked list (formation_head)
@@ -33,12 +37,29 @@
  * - Players are stored in a separate global linked list (player_head)
  */
 
-#include "formation.h"
+#include "position.h"
 #include "../error/error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
+// help declaration, needed before it is defined
+int open_formation(char** args, char** options);
+
+
+/**
+ * @brief Represents a squad formation with assigned positions.
+ * 
+ * A formation contains a name and an array of 24 possible positions.
+ * Each position can be assigned (non-NULL) or unassigned (NULL).
+ * Formations are stored as a linked list.
+ */
+typedef struct formation {
+    char* name;                      /**< Formation name (unique identifier) */
+    position* map_of_positions[24];  /**< Array of position pointers (NULL if unassigned) */
+    struct formation* next;          /**< Next formation in the linked list */
+} formation;
 
 /**
  * @brief Array of valid position abbreviations.
@@ -47,6 +68,7 @@
  * 0: GK (Goalkeeper), 1-5: Defenders, 6-10: Defensive Midfielders,
  * 11-15: Midfielders, 16-20: Attacking Midfielders, 21-23: Forwards
  */
+
 static char* positions[] = {
     "GK", "RB", "RCB", "CB", "LCB", "LB",           /* Defense */
     "RWB", "RCDM", "CDM", "LCDM", "LWB",            /* Defensive Mid / Wingbacks */
@@ -79,6 +101,14 @@ static int count_tokens(char** args) {
     if (!args) return 0;
     while (args[i]) i++;
     return i; 
+}
+
+// helper function for correct prompt in main.c
+char* get_current_formation_name(void) {
+    if (!current_formation) {
+        return NULL;
+    }
+    return current_formation->name;
 }
 
 /**
@@ -156,17 +186,11 @@ static int clean_player_name(char* name) {
  * Iterates through the global player list and frees all
  * player structures and their name strings.
  */
-static void cleanup_players(void) {
-    player* current = player_head;
-    while (current != NULL) {
-        player* next = current->next;
-        if (current->name) {
-            free(current->name);
-        }
-        free(current);
-        current = next;
+static void cleanup_player(player* current) {
+    if (current->name) {
+        free(current->name);
     }
-    player_head = NULL;
+    free(current);
 }
 
 /**
@@ -175,33 +199,22 @@ static void cleanup_players(void) {
  * Iterates through the global formation list and frees all
  * formation structures, their positions, and player lists.
  */
-static void cleanup_formations(void) {
-    formation* current = formation_head;
-    while (current != NULL) {
-        formation* next = current->next;
-        /* Free all positions in this formation */
-        for (int i = 0; i < 24; i++) {
-            if (current->map_of_positions[i] != NULL) {
-                /* Free the player pointer array (not the players themselves) */
-                if (current->map_of_positions[i]->list_of_players != NULL) {
-                    free(current->map_of_positions[i]->list_of_players);
-                }
-                free(current->map_of_positions[i]);
+static void cleanup_formation(formation* current) {
+    /* Free all positions in this formation */
+    for (int i = 0; i < 24; i++) {
+        if (current->map_of_positions[i] != NULL) {
+            /* Free the player pointer array (not the players themselves) */
+            if (current->map_of_positions[i]->list_of_players != NULL) {
+                free(current->map_of_positions[i]->list_of_players);
             }
+            free(current->map_of_positions[i]);
         }
-        if (current->name) {
-            free(current->name);
-        }
-        free(current);
-        current = next;
     }
-    formation_head = NULL;
-    current_formation = NULL;
+    if (current->name) {
+        free(current->name);
+    }
+    free(current);
 }
-
-/* ========================================================================== */
-/* Utility Functions (exported)                                               */
-/* ========================================================================== */
 
 /**
  * @brief Get the name string for a position ID.
@@ -209,7 +222,7 @@ static void cleanup_formations(void) {
  * @param position_id Position ID (0-23)
  * @return Position name string, or NULL if ID is invalid
  */
-char* get_position_name(int position_id) {
+static char* get_position_name(int position_id) {
     if (position_id < 0 || position_id >= 24) {
         return NULL;
     }
@@ -222,7 +235,7 @@ char* get_position_name(int position_id) {
  * @param name Player name to search for
  * @return Pointer to player struct if found, NULL otherwise
  */
-player* find_player_by_name(char* name) {
+static player* find_player_by_name(char* name) {
     if (!name) {
         return NULL;
     }
@@ -769,6 +782,10 @@ int list_players_of_position(char** args, char** options) {
     }
 
     position* pos = current_formation->map_of_positions[position_id];
+    if (pos->size_of_list == 0) {
+        printf("No players assigned to position %s.\n", get_position_name(position_id));
+        return SP_SUCCESS;
+    }
     printf("Players for position %s:\n", get_position_name(position_id));
 
     for (int i = 0; i < pos->size_of_list; i++) {
@@ -824,7 +841,6 @@ int list_formations(char** options) {
  * @param args Array containing the formation name to open
  * @param options Array of options (supports --help)
  * 
- * @return 0 on success, -2 if formation not found or no formations exist
  */
 int open_formation(char** args, char** options) {
     if (!args && !options) {
@@ -931,6 +947,111 @@ int show(char** options) {
     return SP_SUCCESS;
 }
 
+int delete_formation(char** args, char** options) {
+    if (!current_formation) {
+        return SP_ERR_NO_FORMATION;  /* No formation currently open */
+    }
+    if (!args && !options) {
+        return SP_ERR_WRONG_USAGE;
+    }
+    char *usage = "deletef <formation_name> [--help]";
+    char *description = "Removes the specified formation from the formation list. The formation must already exist.";
+    int sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return SP_SUCCESS;
+        return sanity_check;
+    }
+    formation* current = formation_head;
+    formation* previous = NULL;
+    while (current != NULL) {
+        if (strcmp(current->name, args[0]) == 0) {
+            /* Found the formation to remove */
+            if (previous == NULL) {
+                /* head ist still current, therefore next will be the new head */
+                formation_head = current->next;
+            } 
+            else {
+                previous->next = current->next;
+            }
+            /* If the removed formation is the current formation, update current_formation */
+            if (current_formation == current) {
+                current_formation = formation_head;  /* Set to new head or NULL if list is empty */
+            }
+            /* Free the removed formation */
+            cleanup_formation(current);
+            break;
+        }
+        // iterative traverse
+        previous = current;
+        current = current->next;
+    }
+    return SP_SUCCESS;
+}
+
+int delete_player(char** args, char** options) {
+    if (!args && !options) {
+        return SP_ERR_WRONG_USAGE;
+    }
+    char *usage = "deleteP <player_name> [--help]";
+    char *description = "Removes the specified player from the global player list and all positions they are assigned to. The player must already exist.";
+    int sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return SP_SUCCESS;
+        return sanity_check;
+    }
+    player* current = player_head;
+    player* previous = NULL;
+    while (current != NULL) {
+        if (strcmp(current->name, args[0]) == 0) {
+            /* Found the player to remove */
+            if (previous == NULL) {
+                /* head is still current, therefore next will be the new head */
+                player_head = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            /* Remove player from all positions in all formations */
+            formation* f_current = formation_head;
+            while (f_current != NULL) {
+                for (int i = 0; i < 24; i++) {
+                    if (f_current->map_of_positions[i] != NULL) {
+                        position* pos = f_current->map_of_positions[i];
+                        for (int j = 0; j < pos->size_of_list; j++) {
+                            if (strcmp(pos->list_of_players[j]->name, current->name) == 0) {
+                                /* Shift players to remove the player at index j */
+                                for (int k = j; k < pos->size_of_list - 1; k++) {
+                                    pos->list_of_players[k] = pos->list_of_players[k + 1];
+                                }
+                                pos->size_of_list--;
+                                if (pos->size_of_list == 0) {
+                                    free(pos->list_of_players);
+                                    pos->list_of_players = NULL;
+                                } else {
+                                    player** new_list = realloc(pos->list_of_players, sizeof(player*) * pos->size_of_list);
+                                    if (new_list) {
+                                        pos->list_of_players = new_list;
+                                    }
+                                }
+                                break;  /* Player can only be in a position once, so break after finding */
+                            }
+                        }
+                    }
+                }
+                f_current = f_current->next;
+            }
+            /* Free the removed player */
+            cleanup_player(current);
+            break;
+        }
+        // iterative traverse        
+        previous = current;
+        current = current->next;
+    }
+    return SP_SUCCESS;
+}
+
+
+
 /* ========================================================================== */
 /* Cleanup Function (exported)                                                */
 /* ========================================================================== */
@@ -942,6 +1063,14 @@ int show(char** options) {
  * Should be called before program exit.
  */
 void cleanup_all(void) {
-    cleanup_formations();
-    cleanup_players();
+    while (formation_head != NULL) {
+        formation* temp = formation_head;
+        formation_head = formation_head->next;
+        cleanup_formation(temp);
+    }
+    while (player_head != NULL) {
+        player* temp = player_head;
+        player_head = player_head->next;
+        cleanup_player(temp);
+    }
 }

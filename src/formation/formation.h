@@ -10,20 +10,7 @@
 #ifndef FORMATION_H
 #define FORMATION_H
 
-#include "position.h"
-
-/**
- * @brief Represents a squad formation with assigned positions.
- * 
- * A formation contains a name and an array of 24 possible positions.
- * Each position can be assigned (non-NULL) or unassigned (NULL).
- * Formations are stored as a linked list.
- */
-typedef struct formation {
-    char* name;                      /**< Formation name (unique identifier) */
-    position* map_of_positions[24];  /**< Array of position pointers (NULL if unassigned) */
-    struct formation* next;          /**< Next formation in the linked list */
-} formation;
+char* get_current_formation_name(void);
 
 /* Formation commands - ordered by command ID in parser.c */
 
@@ -60,9 +47,11 @@ int open_formation(char** args, char** options);
 /* ID 11: show - Display the formation in tactical view */
 int show(char** options);
 
-/* Utility functions */
-player* find_player_by_name(char* name);
-char* get_position_name(int position_id);
+/* ID 12: deletef - Remove an existing formation */
+int delete_formation(char** args, char** options);
+
+/* ID 13: deleteP - Remove an existing player */
+int delete_player(char** args, char** options);
 
 /* Cleanup function - frees all formations and players */
 void cleanup_all(void);

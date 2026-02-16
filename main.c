@@ -132,10 +132,19 @@ int main(int argc, char const* argv[])
             int ret_val = execute_command(cmd, context);
             printf("%s\n", sp_error_string(ret_val));
             if (ret_val == SP_SUCCESS) {
-                if (context == 1 && (cmd->id == 1 || cmd->id == 10) && cmd->args && cmd->args[0]) { // formation command 'new' or 'open'
-                    if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", cmd->args[0]) < 0) {
-                        perror("Error setting prompt, snprintf: ");
-                        exit(EXIT_FAILURE);
+                if (context == 1) { // formation command 'new' or 'open'
+                    char *in = get_current_formation_name();
+                    if (in != NULL) {
+                            if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", in) < 0) {
+                                perror("Error setting prompt: ");
+                                exit(EXIT_FAILURE);
+                            }
+                        } 
+                    else {
+                        if (snprintf(prompt, 60, "squad-planner - formation> ") < 0) {
+                            perror("Error setting prompt: ");
+                            exit(EXIT_FAILURE);
+                        }
                     }
                 }
             }

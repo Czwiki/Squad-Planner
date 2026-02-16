@@ -95,9 +95,16 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     case 11:  /* show */
         ret_val = show(options);
         break;
-    case 12:  /* save - TODO: implement persistence */
+    case 12:  /* deletef */
+        ret_val = delete_formation(args, options);
+        break;
+    case 13: /* deleteP */
+        ret_val = delete_player(args, options);
+        break;
+    case 14:  /* save - TODO: implement persistence */
         printf("Save functionality not yet implemented.\n");
         break;
+    
     default:
         break;
     }

@@ -52,12 +52,14 @@ static char* command_inputs_main[3] = {"help", "formation", "load"};
  * Index  9: listf      - List all formations
  * Index 10: open       - Open an existing formation
  * Index 11: show       - Display the formation in tactical view
- * Index 12: save       - Save the current formation (transitions to saves menu)
- * Index 13: back       - Return to main menu
+ * Index 12: deletef    - Remove an existing formation
+ * Index 13: deleteP    - Remove an existing player
+ * Index 14: save       - Save the current formation (transitions to saves menu)
+ * Index 15: back       - Return to main menu
  */
-static char* command_inputs_formation[14] = {
+static char* command_inputs_formation[16] = {
     "help", "new", "newP", "preference", "add", "addP",
-    "remove", "removeP", "list", "listf", "open", "show", "save", "back"
+    "remove", "removeP", "list", "listf", "open", "show", "deletef","deleteP", "save", "back"
 };
 
 /**
@@ -122,7 +124,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
             break;
         case 1:  /* Formation menu context */
             command_inputs = command_inputs_formation;
-            length = 14;
+            length = 16;
             break;
         case 2:  /* Saves menu context */
             command_inputs = command_inputs_saves;
@@ -184,10 +186,10 @@ int parse_command(const char* line, int current_context, command* cmd) {
                         }
                         break;
                     case 1:  /* Formation menu */
-                        if (i == 13) {
+                        if (i == 15) {
                             new_context = 0;  /* 'back' -> return to main menu */
                         }
-                        /* Note: 'save' (i==12) no longer changes context - it saves directly */
+                        /* Note: 'save' (i==14) no longer changes context - it saves directly */
                         break;
                     case 2:  /* Saves menu */
                         if (i == 2) {
