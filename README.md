@@ -112,9 +112,9 @@ Squad-Planner/
 │   ├── help/              # Help system
 │   │   ├── help.c
 │   │   └── help.h
-│   └── errorhandler/      # Error handling utilities
-│       ├── errorhandler.c
-│       └── errorhandler.h
+│   └── error/             # Error handling utilities
+│       ├── error.c
+│       └── error.h
 ```
 
 ## Architecture
@@ -125,7 +125,7 @@ Squad-Planner/
 - **exec**: Dispatches parsed commands to appropriate handlers based on context
 - **formation**: Core domain logic for formations, positions, and players
 - **help**: Displays context-sensitive help pages
-- **errorhandler**: Centralized error message display (partially implemented)
+- **error**: Centralized error codes and messages (see `src/error/error.h`)
 
 ### Data Flow
 
@@ -135,26 +135,17 @@ User Input → parser (tokenize/validate) → command struct → exec (dispatch)
 
 ### Error Handling
 
-The project uses numeric error codes:
-- `0`: Success
-- `-1`: System/memory error
-- `-2`: Invalid input/arguments
-- `-3`: Resource not found
+The project uses numeric error codes (see `src/error/error.h`).
 
 ## Future Improvements
 
 ### Planned Features
 - [ ] **Data Persistence**: Save/load formations and players to files
-- [ ] **Enhanced Error Messages**: Context-aware error descriptions
-- [ ] **Player Statistics**: View detailed player info
-- [ ] **Formation Templates**: Pre-built common formations (4-4-2, 4-3-3, etc.)
 - [ ] **Export Options**: Export formations to different formats
 
 ### Code Improvements
-- [ ] Move error code definitions to a central header
 - [ ] Add unit tests for core functions
 - [ ] Implement the saves menu fully
-- [ ] Add input validation for player names (no spaces)
 
 ## License
 

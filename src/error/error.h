@@ -16,11 +16,8 @@ const char* sp_error_string(int error_code);
 #define SP_ERR_INVALID_POSITION  -10  /* Invalid position name */
 #define SP_ERR_NOT_ASSIGNED_POSITION  -11  /* Position not assigned in formation */
 #define SP_ERR_TOO_MANY_POSITIONS -12  /* Too many positions in formation */
-#define SP_ERR_MISSING_ARG  -13  /* Required argument missing */
-#define SP_ERR_TOO_MANY_ARG -14  /* Too many arguments */
-#define SP_ERR_TOO_MANY_OPT -15  /* Too many options */
-#define SP_ERR_WRONG_USAGE    -16  /* Command usage error */
-#define SP_ERR_INVALID_RANGE    -17  /* Argument value out of valid range */
+#define SP_ERR_WRONG_USAGE    -13  /* Command usage error */
+#define SP_ERR_INVALID_RANGE    -14  /* Argument value out of valid range */
 
 /* Resource errors (-20 to -29) */
 #define SP_ERR_POS_NOT_FOUND    -20  /* Resource not found */

@@ -10,9 +10,6 @@ const char* sp_error_string(int error_code) {
         
         case SP_ERR_INVALID_POSITION: return "Invalid position name";
         case SP_ERR_NOT_ASSIGNED_POSITION: return "Position not assigned in formation";
-        case SP_ERR_MISSING_ARG: return "Missing argument";
-        case SP_ERR_TOO_MANY_ARG: return "Too many arguments";
-        case SP_ERR_TOO_MANY_OPT: return "Too many options";
         case SP_ERR_WRONG_USAGE: return "Wrong command usage";
         case SP_ERR_INVALID_RANGE: return "Argument value out of valid range";
 

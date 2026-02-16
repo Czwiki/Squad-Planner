@@ -83,22 +83,19 @@ static int count_tokens(char** args) {
  * @return -1 if both args and options are NULL
  * @return -2 if too many options or arguments provided
  */
-static int sanity_check_and_help(char** options, char** args, int expected_args, int expected_options, char* usage, char* description) {
-    int options_count = count_tokens(options);
+static int sanity_check_and_help(char** args, char** options, int max_args, int min_args, int max_options, int min_options, char* usage, char* description) {
     int args_count = count_tokens(args);
-    if (options_count == 1 && strcmp(options[0], "--help") == 0) {
+    int options_count = count_tokens(options);
+    if (options_count == 1 && options && options[0] && strcmp(options[0], "--help") == 0) {
         printf("Usage: %s\n%s\n", usage, description);
         if (fflush(stdout) != 0) {
             perror("Error flushing stdout: ");
             return SP_ERR_INTERNAL;
-        } 
+        }
         return 1;  /* Help page printed */
     }
-    if (args_count > expected_args) {
-        return SP_ERR_TOO_MANY_ARG;  /* Too many options or arguments */
-    }
-    if (options_count > expected_options) {
-        return SP_ERR_TOO_MANY_OPT;  /* Too many options or arguments */
+    if (args_count > max_args || options_count > max_options || args_count < min_args || options_count < min_options) {
+        return SP_ERR_WRONG_USAGE;  /* Too many options or arguments */
     }
     return 0;  /* Valid input */
 }
@@ -152,6 +149,24 @@ player* find_player_by_name(char* name) {
 }
 
 /**
+ * @brief Replace underscores with spaces in a player name string.
+ * 
+ * @param name Player name string to clean
+ * @return SP_SUCCESS on success, SP_ERR_MEMORY if name is NULL
+ */
+static int clean_player_name(char* name) {
+    if (!name) {
+        return SP_ERR_MEMORY;
+    }
+    for (int i = 0; i < strlen(name); i++) {
+        if (name[i] == '_') {
+            name[i] = ' ';
+        }
+    }
+    return SP_SUCCESS;
+}
+
+/**
  * @brief Open an existing formation for editing.
  * 
  * Sets the specified formation as the current formation, allowing
@@ -171,7 +186,7 @@ int open_formation(char** args, char** options) {
     }    
     char *usage = "open <formation_name> [--help]";
     char *description = "Opens the specified formation for editing. The formation must already exist.";
-    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+    int sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
 
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
@@ -208,7 +223,7 @@ int new_formation(char** args, char** options) {
     }
     char *usage = "new <formation_name> [--help]";
     char *description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation.";
-    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+    int sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
 
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;  /* Help displayed */
@@ -275,7 +290,6 @@ int new_formation(char** args, char** options) {
  * @param args Array of position abbreviations to add
  * @param options Array of options (supports --help)
  * 
- * @return 0 on success, -1 on memory error, -2 on invalid input
  */
 int add_position_to_formation(char** args, char** options) {
     if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
@@ -283,7 +297,7 @@ int add_position_to_formation(char** args, char** options) {
     }
     char *usage = "add <position_names>[1-11] [--help]";
     char *description = "Adds the specified positions to the current formation. The formation must already exist.";
-    int sanity_check = sanity_check_and_help(options, args, 11, 1, usage, description);
+    int sanity_check = sanity_check_and_help(args, options, 11, 1, 1, 0, usage, description);
 
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
@@ -343,8 +357,8 @@ int new_player(char** args, char** options) {
         return SP_ERR_WRONG_USAGE;
     }
     char *usage = "newP <name> <age> <overall> <potential> <own> [--help]";
-    char *description = "Creates a new player with the specified attributes and adds them to the global player list.";
-    int sanity_check = sanity_check_and_help(options, args, 5, 1, usage, description);
+    char *description = "Creates a new player with the specified attributes and adds them to the global player list. If you wish to add a player with names consisting of multiople words, use underscores instead (e.g., 'Ter_Stegen', 'Christiano_Ronaldo'). All other non-alphabetical characters are treated as valid input. Age must be greater than 0, and ratings must be between 0 and 100.";
+    int sanity_check = sanity_check_and_help(args, options, 5, 1, 1, 0, usage, description);
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
         return sanity_check;
@@ -418,9 +432,9 @@ int add_player_to_position(char** args, char **options) {
         return SP_ERR_WRONG_USAGE;
     }
 
-    char *usage = "addP <position_name> <player_name> [--help]";
-    char *description = "Adds the specified player to the candidate list for the specified position in the current formation. The position must already be assigned in the formation, and the player must exist in the global player list.";
-    int sanity_check = sanity_check_and_help(options, args, 2, 1, usage, description);
+    char *usage = "addP <position_name> <player_names>[1-10] [--help]";
+    char *description = "Adds the specified players to the candidate list for the specified position in the current formation. The position must already be assigned in the formation, and the player must exist in the global player list.";
+    int sanity_check = sanity_check_and_help(args, options, 11, 2, 1, 0, usage, description);
 
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
@@ -434,27 +448,34 @@ int add_player_to_position(char** args, char **options) {
     if (current_formation->map_of_positions[position_id] == NULL) {
         return SP_ERR_NOT_ASSIGNED_POSITION;  /* Position not assigned in formation */
     }
-    player* p = find_player_by_name(args[1]);
-    if (!p) {
-        return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found */
-    }
-    position* pos = current_formation->map_of_positions[position_id];
-    
-    /* Check for duplicate - player already in position */
-    for (int i = 0; i < pos->size_of_list; i++) {
-        if (strcmp(pos->list_of_players[i]->name, p->name) == 0) {
-            return SP_ERR_PLAYER_ALREADY_ASSIGNED;  /* Player already in the position's list */
+    int i = 1;
+    while (args[i] != NULL) {
+        if (i > 10) {
+            return SP_ERR_WRONG_USAGE;  /* Too many players specified */
         }
+        player* p = find_player_by_name(args[i]);
+        if (!p) {
+            return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found */
+        }
+        position* pos = current_formation->map_of_positions[position_id];
+        
+        /* Check for duplicate - player already in position */
+        for (int j = 0; j < pos->size_of_list; j++) {
+            if (strcmp(pos->list_of_players[j]->name, p->name) == 0) {
+                return SP_ERR_PLAYER_ALREADY_ASSIGNED;  /* Player already in the position's list */
+            }
+        }
+        
+        /* Append the player to the position's list */
+        player** new_list = realloc(pos->list_of_players, sizeof(player*) * (pos->size_of_list + 1));
+        if (!new_list) {
+            return SP_ERR_MEMORY;
+        }
+        new_list[pos->size_of_list] = p;
+        pos->list_of_players = new_list;
+        pos->size_of_list = pos->size_of_list + 1;
+        i++;
     }
-    
-    /* Append the player to the position's list */
-    player** new_list = realloc(pos->list_of_players, sizeof(player*) * (pos->size_of_list + 1));
-    if (!new_list) {
-        return SP_ERR_MEMORY;
-    }
-    new_list[pos->size_of_list] = p;
-    pos->list_of_players = new_list;
-    pos->size_of_list = pos->size_of_list + 1;
     return SP_SUCCESS;
 }
 
@@ -475,7 +496,7 @@ int list_players_of_position(char** args, char** options) {
 
     char *usage = "list <position_name> [--help]";
     char *description = "List all players assigned to the specified position in the current formation.";
-    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+    int sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
         return sanity_check;
@@ -492,7 +513,16 @@ int list_players_of_position(char** args, char** options) {
     printf("Players for position %s:\n", get_position_name(position_id));
 
     for (int i = 0; i < pos->size_of_list; i++) {
-        printf("- %s\n", pos->list_of_players[i]->name);
+        char *cleaned_name = strdup(pos->list_of_players[i]->name);
+        if (!cleaned_name) {
+            return SP_ERR_MEMORY;
+        }
+        if (clean_player_name(cleaned_name) != SP_SUCCESS) {
+            free(cleaned_name);
+            return SP_ERR_MEMORY;
+        }
+        printf("- %s\n", cleaned_name);
+        free(cleaned_name);
     }
 
     return SP_SUCCESS;
@@ -508,7 +538,7 @@ int list_formations(char** options) {
     
     char *usage = "listf [--help]";
     char *description = "Displays the names of all formations in the formation list.";
-    int sanity_check = sanity_check_and_help(options, NULL, 0, 1, usage, description);
+    int sanity_check = sanity_check_and_help(NULL, options, 0, 1, 1, 0, usage, description);
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
         return sanity_check;
@@ -542,11 +572,11 @@ int remove_player_from_position(char** args, char** options) {
         return SP_ERR_WRONG_USAGE;
     }
 
-    char *usage = "removeP <position_name> <player_name> [--help]";
-    char *description = "Removes the specified player from the candidate list of the specified position.";
-    int sanity_check = sanity_check_and_help(options, args, 2, 1, usage, description);
+    char *usage = "removeP <position_name> <player_names>[1-10] [-all --help]";
+    char *description = "Removes the specified players from the candidate list of the specified position. With -all option, all players from the position are removed. The position must exist in the current formation.";
+    int sanity_check = sanity_check_and_help(args, options, 11, 0, 1, 0, usage, description);
     if (sanity_check != 0) {
-        if (sanity_check == 1) return 0;
+        if (sanity_check == 1) return SP_SUCCESS;
         return sanity_check;
     }
 
@@ -559,32 +589,51 @@ int remove_player_from_position(char** args, char** options) {
     }
     
     position* pos = current_formation->map_of_positions[position_id];
-    int found_index = -1;
-    
-    /* Find the player in the position's list */
-    for (int i = 0; i < pos->size_of_list; i++) {
-        if (strcmp(pos->list_of_players[i]->name, args[1]) == 0) {
-            found_index = i;
-            break;
+    // options[0] cannot be --help due to previous sanity check
+    if (options && options[0]) {
+        if (strcmp(options[0], "-all") == 0) {
+            /* Remove all players from the position */
+            if (args && args[1] != NULL) {
+                return SP_ERR_WRONG_USAGE;  /* No player names should be specified with -all */
+            }
+            free(pos->list_of_players);
+            pos->list_of_players = NULL;
+            pos->size_of_list = 0;
+            return SP_SUCCESS;
         }
     }
-    if (found_index == -1) {
-        return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found in position's list */
-    }
-    
-    /* Shift players to remove the player at found_index */
-    for (int i = found_index; i < pos->size_of_list - 1; i++) {
-        pos->list_of_players[i] = pos->list_of_players[i + 1];
-    }
-    pos->size_of_list--;
-    
-    if (pos->size_of_list == 0) {
-        free(pos->list_of_players);
-        pos->list_of_players = NULL;
-    } else {
-        player** new_list = realloc(pos->list_of_players, sizeof(player*) * pos->size_of_list);
-        if (new_list) {
-            pos->list_of_players = new_list;
+    int i = 1;
+    while (args[i] != NULL) {
+         if (i > 10) {
+            return SP_ERR_WRONG_USAGE;  /* Too many players specified */
+        }
+        int found_index = -1;
+        
+        /* Find the player in the position's list */
+        for (int j = 0; j < pos->size_of_list; j++) {
+            if (strcmp(pos->list_of_players[j]->name, args[i]) == 0) {
+                found_index = j;
+                break;
+            }
+        }
+        if (found_index == -1) {
+            return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found in position's list */
+        }
+        
+        /* Shift players to remove the player at found_index */
+        for (int j = found_index; j < pos->size_of_list - 1; j++) {
+            pos->list_of_players[j] = pos->list_of_players[j + 1];
+        }
+        pos->size_of_list--;
+        
+        if (pos->size_of_list == 0) {
+            free(pos->list_of_players);
+            pos->list_of_players = NULL;
+        } else {
+            player** new_list = realloc(pos->list_of_players, sizeof(player*) * pos->size_of_list);
+            if (new_list) {
+                pos->list_of_players = new_list;
+            }
         }
     }
     return SP_SUCCESS;
@@ -603,6 +652,7 @@ int preferences(char** args, char** options) {
     if (!current_formation) {
         return SP_ERR_NO_FORMATION;  /* No formation currently open */
     }
+    // because the size of the player list is a required argument for the sanity check, these other ones must be concluded beforehand
     if (!args && !options) { 
         return SP_ERR_WRONG_USAGE;
     }
@@ -619,7 +669,7 @@ int preferences(char** args, char** options) {
     position* pos = current_formation->map_of_positions[position_id];
     char *usage = "preference <position> [player1 player2 ...] [-reverse] [--help]";
     char *description = "Reorder players in a position based on specified preference order. Use -reverse to invert the order.";
-    int sanity = sanity_check_and_help(options, args, pos->size_of_list, 1, usage, description);
+    int sanity = sanity_check_and_help(args, options, pos->size_of_list+1, 2, 1, 0, usage, description);
     if (sanity != 0) {
         if (sanity == 1) return SP_SUCCESS;
         return sanity;
@@ -700,27 +750,33 @@ int remove_position_from_formation(char** args, char** options) {
         return SP_ERR_WRONG_USAGE; // one must be present
     }
 
-    char *usage = "remove <position_name> [--help]";
+    char *usage = "remove <position_name>[1-5] [--help]";
     char *description = "Removes the specified position from the current formation. Position must not have players assigned.";
-    int sanity_check = sanity_check_and_help(options, args, 1, 1, usage, description);
+    int sanity_check = sanity_check_and_help(args, options, 5, 1, 1, 0, usage, description);
     if (sanity_check != 0) {
         if (sanity_check == 1) return 0;
         return sanity_check;
     }
-    
-    int position_id = parse_position_string(args[0]);
-    if (position_id == -1) {
-        return SP_ERR_INVALID_POSITION;  /* Position not found */
+    int i = 1;
+    while (args[i] != NULL) {
+        if (i > 5) {
+            return SP_ERR_WRONG_USAGE;  /* Too many positions specified */
+        }
+        int position_id = parse_position_string(args[i]);
+        if (position_id == -1) {
+            return SP_ERR_INVALID_POSITION;  /* Position not found */
+        }
+        if (current_formation->map_of_positions[position_id] == NULL) {
+            return SP_SUCCESS;  /* Position is already empty */
+        }
+        if (current_formation->map_of_positions[position_id]->list_of_players != NULL) {
+            return SP_ERR_INVALID_CMD;  /* Cannot remove position with assigned players */
+        }
+        free(current_formation->map_of_positions[position_id]->list_of_players);
+        free(current_formation->map_of_positions[position_id]);
+        current_formation->map_of_positions[position_id] = NULL;
+        i++;
     }
-    if (current_formation->map_of_positions[position_id] == NULL) {
-        return SP_SUCCESS;  /* Position is already empty */
-    }
-    if (current_formation->map_of_positions[position_id]->list_of_players != NULL) {
-        return SP_ERR_INVALID_CMD;  /* Cannot remove position with assigned players */
-    }
-    free(current_formation->map_of_positions[position_id]->list_of_players);
-    free(current_formation->map_of_positions[position_id]);
-    current_formation->map_of_positions[position_id] = NULL;
     return SP_SUCCESS;
 }
 
@@ -740,7 +796,7 @@ int show(char** options) {
 
     char *usage = "show [--help]";
     char *description = "Display the current formation in a tactical view.";
-    int sanity_check = sanity_check_and_help(options, NULL, 0, 1, usage, description);
+    int sanity_check = sanity_check_and_help(NULL, options, 0, 0, 1, 0, usage, description);
     if (sanity_check != 0) {
         if (sanity_check == 1) return 0;
         return sanity_check;

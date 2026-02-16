@@ -12,7 +12,6 @@
 /**
  * @brief Represents a parsed command from user input.
  * 
- * After parsing, this structure contains:
  * - The command's ID (index in the context's command array)
  * - The raw command name string
  * - Any options (NULL-terminated array of strings starting with '-')
@@ -26,5 +25,4 @@ typedef struct command {
     char** options;       /**< NULL-terminated array of options (start with '-') */
     char** args;          /**< NULL-terminated array of arguments */
 } command;
-
 #endif /* COMMAND_H */

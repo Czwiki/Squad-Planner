@@ -134,7 +134,6 @@ int main(int argc, char const* argv[])
                         perror("Error setting prompt, snprintf: ");
                         exit(EXIT_FAILURE);
                     }
-                    //printf("In formation context\n");
                 }
             }
         }
