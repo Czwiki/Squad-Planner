@@ -146,10 +146,10 @@ int exec_load_command(int cmd_id, char** args) {
  * @return -2 on invalid arguments for the command
  */
 int execute_command(command* cmd, int context) {
-    printf("Executing command ID %d in context %d\n", cmd->id, context);
     if (!cmd) {
         return -1;
     }
+    printf("Executing command ID %d in context %d\n", cmd->id, context);
     int ret_val = 0;
     switch (context) {
     case 0:  /* Main menu */

@@ -1,6 +1,7 @@
 #include "src/parser/parser.h"
 #include "src/exec/exec.h"
 #include "src/error/error.h"
+#include "src/formation/formation.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,7 +71,9 @@ int main(int argc, char const* argv[])
             line[strlen(line) - 1] = '\0';
         }
         if (strcmp(line, "exit") == 0 ) {
+            clean_command(cmd);
             free(cmd);
+            cleanup_all();
             exit(EXIT_SUCCESS);
         }
 
@@ -143,9 +146,14 @@ int main(int argc, char const* argv[])
     
     if (ferror(stdin)) {
         perror("Error reading line: ");
+        clean_command(cmd);
+        cleanup_all();
+        free(cmd);
         exit(EXIT_FAILURE);
     }
 
+    clean_command(cmd);
+    cleanup_all();
     free(cmd);
     return 0;
 }
