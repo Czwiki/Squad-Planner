@@ -538,7 +538,7 @@ int list_formations(char** options) {
     
     char *usage = "listf [--help]";
     char *description = "Displays the names of all formations in the formation list.";
-    int sanity_check = sanity_check_and_help(NULL, options, 0, 1, 1, 0, usage, description);
+    int sanity_check = sanity_check_and_help(NULL, options, 0, 0, 1, 0, usage, description);
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
         return sanity_check;
@@ -635,6 +635,7 @@ int remove_player_from_position(char** args, char** options) {
                 pos->list_of_players = new_list;
             }
         }
+        i++;  /* Move to next player argument */
     }
     return SP_SUCCESS;
 }
@@ -757,7 +758,7 @@ int remove_position_from_formation(char** args, char** options) {
         if (sanity_check == 1) return 0;
         return sanity_check;
     }
-    int i = 1;
+    int i = 0;
     while (args[i] != NULL) {
         if (i > 5) {
             return SP_ERR_WRONG_USAGE;  /* Too many positions specified */
@@ -854,4 +855,64 @@ int show(char** options) {
         return SP_ERR_INTERNAL;
     }
     return SP_SUCCESS;
+}
+
+/**
+ * @brief Free all memory associated with players.
+ * 
+ * Iterates through the global player list and frees all
+ * player structures and their name strings.
+ */
+void cleanup_players(void) {
+    player* current = player_head;
+    while (current != NULL) {
+        player* next = current->next;
+        if (current->name) {
+            free(current->name);
+        }
+        free(current);
+        current = next;
+    }
+    player_head = NULL;
+}
+
+/**
+ * @brief Free all memory associated with formations.
+ * 
+ * Iterates through the global formation list and frees all
+ * formation structures, their positions, and player lists.
+ */
+void cleanup_formations(void) {
+    formation* current = formation_head;
+    while (current != NULL) {
+        formation* next = current->next;
+        /* Free all positions in this formation */
+        for (int i = 0; i < 24; i++) {
+            if (current->map_of_positions[i] != NULL) {
+                /* Free the player pointer array (not the players themselves) */
+                if (current->map_of_positions[i]->list_of_players != NULL) {
+                    free(current->map_of_positions[i]->list_of_players);
+                }
+                free(current->map_of_positions[i]);
+            }
+        }
+        if (current->name) {
+            free(current->name);
+        }
+        free(current);
+        current = next;
+    }
+    formation_head = NULL;
+    current_formation = NULL;
+}
+
+/**
+ * @brief Free all application resources.
+ * 
+ * Calls cleanup functions for all global data structures.
+ * Should be called before program exit.
+ */
+void cleanup_all(void) {
+    cleanup_formations();
+    cleanup_players();
 }

@@ -43,4 +43,9 @@ int preferences(char** args, char** options);
 player* find_player_by_name(char* name);
 char* get_position_name(int position_id);
 
+/* Cleanup functions */
+void cleanup_players(void);
+void cleanup_formations(void);
+void cleanup_all(void);
+
 #endif /* FORMATION_H */
