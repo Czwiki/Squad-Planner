@@ -26,7 +26,7 @@ Diese Code-Review analysiert den aktuellen Stand des Squad-Planner Projekts und 
   }
   // Aber player_head, formation_head und alle positions werden NIE freigegeben
   ```
-- **Fix**: Eine `cleanup()` Funktion hinzufügen, die alle Ressourcen freigbit.
+- **Fix**: Eine `cleanup()` Funktion hinzufügen, die alle Ressourcen freigibt.
 
 #### **Kritisch: Positionen werden bei formation-Löschung nicht freigegeben**
 - **Datei**: `src/formation/formation.c`

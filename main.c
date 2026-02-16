@@ -146,11 +146,13 @@ int main(int argc, char const* argv[])
     
     if (ferror(stdin)) {
         perror("Error reading line: ");
+        clean_command(cmd);
         cleanup_all();
         free(cmd);
         exit(EXIT_FAILURE);
     }
 
+    clean_command(cmd);
     cleanup_all();
     free(cmd);
     return 0;
