@@ -31,7 +31,6 @@
  * - load: (placeholder for future implementation)
  * 
  * @param cmd_id Command identifier (index in command list)
- * @return 0 on success, negative on error
  */
 int exec_main_command(int cmd_id) {
     int ret_val = 0;
@@ -54,7 +53,6 @@ int exec_main_command(int cmd_id) {
  * @param cmd_id Command identifier
  * @param options Array of option strings
  * @param args Array of argument strings
- * @return 0 on success, negative on error
  */
 int exec_formation_command(int cmd_id, char** options, char** args) {
     int ret_val = 0;
@@ -104,11 +102,9 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     case 14:  /* save - TODO: implement persistence */
         printf("Save functionality not yet implemented.\n");
         break;
-    
     default:
         break;
     }
-    printf("%i\n", ret_val);
     return ret_val;
 }
 
@@ -120,7 +116,6 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
  * 
  * @param cmd_id Command identifier
  * @param args Array of argument strings
- * @return 0 on success, negative on error
  */
 int exec_load_command(int cmd_id, char** args) {
     int ret_val = 0;
@@ -147,16 +142,9 @@ int exec_load_command(int cmd_id, char** args) {
  * 
  * @param cmd Pointer to the parsed command structure
  * @param context Current application context (0=main, 1=formation, 2=saves)
- * 
- * @return 0 on success
- * @return -1 on null command or general error
- * @return -2 on invalid arguments for the command
  */
 int execute_command(command* cmd, int context) {
-    if (!cmd) {
-        return -1;
-    }
-    printf("Executing command ID %d in context %d\n", cmd->id, context);
+    if (context != 99) printf("Executing command ID %d in context %d\n", cmd->id, context);
     int ret_val = 0;
     switch (context) {
     case 0:  /* Main menu */
@@ -167,6 +155,9 @@ int execute_command(command* cmd, int context) {
         break;
     case 2:  /* Saves menu */
         ret_val = exec_load_command(cmd->id, cmd->args);
+        break; 
+    case 99:
+        cleanup_all();
         break;
     default:
         break;

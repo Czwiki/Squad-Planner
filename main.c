@@ -10,6 +10,11 @@
 
 # define MAX_INPUT_SIZE 200
 
+static void die(const char* message) {
+    perror(message);
+    exit(EXIT_FAILURE);
+}
+
 int clean_command (command* cmd) {
     if (!cmd) return 0;
     if (cmd->name) {
@@ -47,8 +52,7 @@ int main(int argc, char const* argv[])
     char prompt[60] = "squad-planner - main> ";
     command* cmd = malloc(sizeof(command));
     if (!cmd) {
-        perror("Memory allocation error: ");
-        exit(EXIT_FAILURE);
+        die("Memory allocation error: ");
     }
 
     printf("%s", prompt);
@@ -73,7 +77,7 @@ int main(int argc, char const* argv[])
         if (strcmp(line, "exit") == 0 ) {
             clean_command(cmd);
             free(cmd);
-            cleanup_all();
+            execute_command(NULL, 99); // cleanup command to free formations and players
             exit(EXIT_SUCCESS);
         }
 
@@ -81,17 +85,13 @@ int main(int argc, char const* argv[])
         
         switch (parse_command(line, context, cmd)) { // all cases mutually exclusive
             case SP_ERR_MEMORY:
-                clean_command(cmd);
-                perror("Error parsing command: ");
-                exit(EXIT_FAILURE);
+                die("Error parsing command: ");
                 break;
             case SP_ERR_INTERNAL:
-                clean_command(cmd);
-                fprintf(stderr, "Internal error occurred while parsing command\n");
-                exit(EXIT_FAILURE);
+                die(sp_error_string(SP_ERR_INTERNAL));
                 break;
             case SP_ERR_INVALID_CMD:
-                fprintf(stderr, "Invalid command format\n");
+                fprintf(stderr, "%s\n", sp_error_string(SP_ERR_INVALID_CMD));
                 executing = 0;
                 break;
             default: // just for the top 4 cases to change context
@@ -102,22 +102,19 @@ int main(int argc, char const* argv[])
             switch (cmd->future_context) {
                 case 0:
                     if (snprintf(prompt, 60, "squad-planner - main> ") < 0) {
-                        perror("Error setting prompt: ");
-                        exit(EXIT_FAILURE);
+                        die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
                 case 1:
                     if (snprintf(prompt, 60, "squad-planner - formation> ") < 0) {
-                        perror("Error setting prompt: ");
-                        exit(EXIT_FAILURE);
+                        die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
                 case 2:
                     if (snprintf(prompt, 60, "squad-planner - saves> ") < 0) {
-                        perror("Error setting prompt: ");
-                        exit(EXIT_FAILURE);
+                        die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
@@ -136,14 +133,12 @@ int main(int argc, char const* argv[])
                     char *in = get_current_formation_name();
                     if (in != NULL) {
                             if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", in) < 0) {
-                                perror("Error setting prompt: ");
-                                exit(EXIT_FAILURE);
+                                die("Error setting prompt: ");
                             }
                         } 
                     else {
                         if (snprintf(prompt, 60, "squad-planner - formation> ") < 0) {
-                            perror("Error setting prompt: ");
-                            exit(EXIT_FAILURE);
+                            die("Error setting prompt: ");
                         }
                     }
                 }
@@ -154,16 +149,12 @@ int main(int argc, char const* argv[])
     }
     
     if (ferror(stdin)) {
-        perror("Error reading line: ");
-        clean_command(cmd);
-        cleanup_all();
-        free(cmd);
-        exit(EXIT_FAILURE);
+        die("Error reading line: ");
     }
 
     clean_command(cmd);
-    cleanup_all();
     free(cmd);
+    execute_command(NULL, 99); // cleanup command to free formations and players
     return 0;
 }
 

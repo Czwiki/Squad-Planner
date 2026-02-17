@@ -250,7 +250,7 @@ static player* find_player_by_name(char* name) {
 }
 
 /* ========================================================================== */
-/* Command Functions - Ordered by Command ID (parser.c)                       */
+/* Command Functions                                                          */
 /* ========================================================================== */
 
 /**
@@ -361,15 +361,17 @@ int new_player(char** args, char** options) {
     
     /* Parse player attributes from string arguments */
     errno = 0;
-    int age = strtol(args[1], NULL, 10);
-    int overall = strtol(args[2], NULL, 10);
-    int potential = strtol(args[3], NULL, 10);
-    int own = strtol(args[4], NULL, 10);
+    char *endptr;
+    int age = strtol(args[1], &endptr, 10);
+    int overall = strtol(args[2], &endptr, 10);
+    int potential = strtol(args[3], &endptr, 10);
+    int own = strtol(args[4], &endptr, 10);
 
-    if (errno == ERANGE) {
+    if (errno == ERANGE || endptr == args[1] || endptr == args[2] || endptr == args[3] || endptr == args[4]) {
+        // invalid integer conversion for one of the arguments
         free(new_p->name);
         free(new_p);
-        return SP_ERR_MEMORY;  /* Conversion error */
+        return SP_ERR_INTERNAL;  /* Conversion error */
     }
     
     /* Validate attribute ranges */
