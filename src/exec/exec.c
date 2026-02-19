@@ -164,3 +164,8 @@ int execute_command(command* cmd, int context) {
     }
     return ret_val;
 }
+
+// interface to limit includes into main.c
+int current_formation_name(char* dest) {
+    return get_current_formation_name(dest);
+}

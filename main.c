@@ -1,7 +1,6 @@
 #include "src/parser/parser.h"
 #include "src/exec/exec.h"
 #include "src/error/error.h"
-#include "src/formation/formation.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +48,7 @@ int main(int argc, char const* argv[])
     // command id -1 == exit
     int context = 0; // 0 == main menu, 1 == in formation planner, 2 == load menu
 
-    char prompt[60] = "squad-planner - main> ";
+    char prompt[70] = "squad-planner - main> ";
     command* cmd = malloc(sizeof(command));
     if (!cmd) {
         die("Memory allocation error: ");
@@ -101,19 +100,19 @@ int main(int argc, char const* argv[])
         if (cmd->future_context != context) {
             switch (cmd->future_context) {
                 case 0:
-                    if (snprintf(prompt, 60, "squad-planner - main> ") < 0) {
+                    if (snprintf(prompt, 70, "squad-planner - main> ") < 0) {
                         die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
                 case 1:
-                    if (snprintf(prompt, 60, "squad-planner - formation> ") < 0) {
+                    if (snprintf(prompt, 70, "squad-planner - formation> ") < 0) {
                         die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
                 case 2:
-                    if (snprintf(prompt, 60, "squad-planner - saves> ") < 0) {
+                    if (snprintf(prompt, 70, "squad-planner - saves> ") < 0) {
                         die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
@@ -130,22 +129,21 @@ int main(int argc, char const* argv[])
             printf("%s\n", sp_error_string(ret_val));
             if (ret_val == SP_SUCCESS) {
                 if (context == 1) { // formation command 'new' or 'open'
-                    char *in = get_current_formation_name();
-                    if (in != NULL) {
-                            if (snprintf(prompt, 60, "squad-planner - '%s' formation> ", in) < 0) {
-                                die("Error setting prompt: ");
-                            }
-                        } 
-                    else {
-                        if (snprintf(prompt, 60, "squad-planner - formation> ") < 0) {
+                    char in[40] = {0};
+                    int result = current_formation_name(in);
+                    if (result == SP_SUCCESS) {
+                        if (snprintf(prompt, 70, "squad-planner - '%s' formation> ", in) < 0) {
                             die("Error setting prompt: ");
                         }
+                    } 
+                    else {
+                        die("Error getting current formation name: ");
                     }
                 }
             }
+            printf("%s", prompt);
+            clean_command(cmd);
         }
-        printf("%s", prompt);
-        clean_command(cmd);
     }
     
     if (ferror(stdin)) {

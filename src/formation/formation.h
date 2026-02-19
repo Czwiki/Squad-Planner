@@ -10,7 +10,7 @@
 #ifndef FORMATION_H
 #define FORMATION_H
 
-char* get_current_formation_name(void);
+int get_current_formation_name(char* dest);
 
 /* Formation commands - ordered by command ID in parser.c */
 

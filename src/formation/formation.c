@@ -104,11 +104,13 @@ static int count_tokens(char** args) {
 }
 
 // helper function for correct prompt in main.c
-char* get_current_formation_name(void) {
+int get_current_formation_name(char *dest) {
     if (!current_formation) {
-        return NULL;
+        return SP_ERR_NO_FORMATION;
     }
-    return current_formation->name;
+    strncpy(dest, current_formation->name, 40);  // copy up to 39 characters + null terminator
+    dest[39] = '\0';  // ensure null termination
+    return SP_SUCCESS;
 }
 
 /**
@@ -268,7 +270,7 @@ int new_formation(char** args, char** options) {
     if (!args && !options) {
         return SP_ERR_WRONG_USAGE;
     }
-    char *usage = "new <formation_name> [--help]";
+    char *usage = "new <formation_name>[max. 39 characters] [--help]";
     char *description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation.";
     int sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
 
@@ -280,6 +282,10 @@ int new_formation(char** args, char** options) {
     /* Check if formation with this name already exists */
     if (open_formation(args, NULL) == 0) {
         return SP_ERR_FORMATION_EXISTS;  /* Formation with this name already exists */
+    }
+
+    if (strlen(args[0]) > 39) {
+        return SP_ERR_WRONG_USAGE;  /* Formation name cannot be empty */
     }
 
     /* Create the first formation in the list */

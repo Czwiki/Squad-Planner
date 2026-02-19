@@ -19,5 +19,6 @@
  * @return 0 on success, negative on error
  */
 int execute_command(command* cmd, int context);
+int current_formation_name(char* dest);
 
 #endif /* EXEC_H */
