@@ -37,6 +37,7 @@
  * - Players are stored in a separate global linked list (player_head)
  */
 
+#include "formation.h"
 #include "position.h"
 #include "../error/error.h"
 #include <stdio.h>
@@ -1076,9 +1077,193 @@ void cleanup_all(void) {
         formation_head = formation_head->next;
         cleanup_formation(temp);
     }
+    current_formation = NULL;
     while (player_head != NULL) {
         player* temp = player_head;
         player_head = player_head->next;
         cleanup_player(temp);
     }
+}
+
+/* ========================================================================== */
+/* Persistence Accessor Functions                                             */
+/* ========================================================================== */
+
+/*
+ * The following functions provide read-only iteration over the internal
+ * data structures. They are used by the persistence module to serialize
+ * players and formations to JSON without exposing the static globals or
+ * struct definitions outside of this translation unit.
+ *
+ * The opaque iterator types (player_iter, formation_iter) are defined
+ * in formation.h as forward declarations; internally they map directly
+ * to the real player/formation structs via casts.
+ */
+
+/* --- Player iteration --- */
+
+player_iter* player_iter_first(void) {
+    return (player_iter*) player_head;
+}
+
+player_iter* player_iter_next(player_iter* it) {
+    if (!it) return NULL;
+    return (player_iter*)(((player*)it)->next);
+}
+
+const char* player_iter_name(const player_iter* it) {
+    return it ? ((const player*)it)->name : NULL;
+}
+
+int player_iter_age(const player_iter* it) {
+    return it ? ((const player*)it)->age : 0;
+}
+
+int player_iter_overall(const player_iter* it) {
+    return it ? ((const player*)it)->overall_rating : 0;
+}
+
+int player_iter_potential(const player_iter* it) {
+    return it ? ((const player*)it)->potential_rating : 0;
+}
+
+int player_iter_own(const player_iter* it) {
+    return it ? ((const player*)it)->own_rating : 0;
+}
+
+/* --- Formation iteration --- */
+
+formation_iter* formation_iter_first(void) {
+    return (formation_iter*) formation_head;
+}
+
+formation_iter* formation_iter_next(formation_iter* it) {
+    if (!it) return NULL;
+    return (formation_iter*)(((formation*)it)->next);
+}
+
+const char* formation_iter_name(const formation_iter* it) {
+    return it ? ((const formation*)it)->name : NULL;
+}
+
+int formation_iter_position(const formation_iter* it, int slot,
+                            const char** out_name, int* out_count) {
+    if (!it || slot < 0 || slot >= 24) return 0;
+    const formation* f = (const formation*)it;
+    if (!f->map_of_positions[slot]) return 0;
+    if (out_name)  *out_name  = f->map_of_positions[slot]->name;
+    if (out_count) *out_count = f->map_of_positions[slot]->size_of_list;
+    return 1;
+}
+
+const char* formation_iter_pos_player(const formation_iter* it, int slot, int k) {
+    if (!it || slot < 0 || slot >= 24) return NULL;
+    const formation* f = (const formation*)it;
+    if (!f->map_of_positions[slot]) return NULL;
+    if (k < 0 || k >= f->map_of_positions[slot]->size_of_list) return NULL;
+    return f->map_of_positions[slot]->list_of_players[k]->name;
+}
+
+/* --- Direct creation helpers for persistence load --- */
+
+int create_player_direct(const char* name, int age,
+                         int overall, int potential, int own) {
+    if (!name) return SP_ERR_NULL_PTR;
+
+    /* Check for duplicate */
+    if (find_player_by_name((char*)name)) {
+        return SP_ERR_PLAYER_EXISTS;
+    }
+
+    player* new_p = malloc(sizeof(player));
+    if (!new_p) return SP_ERR_MEMORY;
+    new_p->name = strdup(name);
+    if (!new_p->name) { free(new_p); return SP_ERR_MEMORY; }
+    new_p->age = age;
+    new_p->overall_rating = overall;
+    new_p->potential_rating = potential;
+    new_p->own_rating = own;
+    new_p->next = NULL;
+
+    /* Append to player list */
+    if (!player_head) {
+        player_head = new_p;
+    } else {
+        player* cur = player_head;
+        while (cur->next) cur = cur->next;
+        cur->next = new_p;
+    }
+    return SP_SUCCESS;
+}
+
+int create_formation_direct(const char* name) {
+    if (!name) return SP_ERR_NULL_PTR;
+
+    /* Use a temporary args array to reuse new_formation() logic inline */
+    formation* cur = formation_head;
+    while (cur) {
+        if (strcmp(cur->name, name) == 0) return SP_ERR_FORMATION_EXISTS;
+        cur = cur->next;
+    }
+
+    formation* new_f = malloc(sizeof(formation));
+    if (!new_f) return SP_ERR_MEMORY;
+    new_f->name = strdup(name);
+    if (!new_f->name) { free(new_f); return SP_ERR_MEMORY; }
+    new_f->next = NULL;
+    for (int i = 0; i < 24; i++) new_f->map_of_positions[i] = NULL;
+
+    /* Append to list */
+    if (!formation_head) {
+        formation_head = new_f;
+    } else {
+        formation* tail = formation_head;
+        while (tail->next) tail = tail->next;
+        tail->next = new_f;
+    }
+    current_formation = new_f;
+    return SP_SUCCESS;
+}
+
+int add_position_direct(const char* position_name) {
+    if (!current_formation) return SP_ERR_NO_FORMATION;
+    if (!position_name) return SP_ERR_NULL_PTR;
+
+    int pid = parse_position_string((char*)position_name);
+    if (pid == -1) return SP_ERR_INVALID_POSITION;
+
+    /* If already assigned, skip silently (idempotent) */
+    if (current_formation->map_of_positions[pid]) return SP_SUCCESS;
+
+    position* pos = malloc(sizeof(position));
+    if (!pos) return SP_ERR_MEMORY;
+    pos->id = pid;
+    pos->name = get_position_name(pid);
+    pos->size_of_list = 0;
+    pos->list_of_players = NULL;
+    current_formation->map_of_positions[pid] = pos;
+    return SP_SUCCESS;
+}
+
+int add_player_to_position_direct(const char* position_name,
+                                  const char* player_name) {
+    if (!current_formation) return SP_ERR_NO_FORMATION;
+    if (!position_name || !player_name) return SP_ERR_NULL_PTR;
+
+    int pid = parse_position_string((char*)position_name);
+    if (pid == -1) return SP_ERR_INVALID_POSITION;
+    if (!current_formation->map_of_positions[pid])
+        return SP_ERR_NOT_ASSIGNED_POSITION;
+
+    player* p = find_player_by_name((char*)player_name);
+    if (!p) return SP_ERR_PLAYER_NOT_FOUND;
+
+    position* pos = current_formation->map_of_positions[pid];
+    player** new_list = realloc(pos->list_of_players,
+                                sizeof(player*) * (pos->size_of_list + 1));
+    if (!new_list) return SP_ERR_MEMORY;
+    new_list[pos->size_of_list] = p;
+    pos->list_of_players = new_list;
+    pos->size_of_list++;
+    return SP_SUCCESS;
 }

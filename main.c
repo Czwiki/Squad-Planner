@@ -1,11 +1,11 @@
 #include "src/parser/parser.h"
 #include "src/exec/exec.h"
 #include "src/error/error.h"
+#include "src/compat.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
 
 # define MAX_INPUT_SIZE 200
 

@@ -67,9 +67,10 @@ static char* command_inputs_formation[16] = {
  * 
  * Index 0: help - Display saves menu help
  * Index 1: save - Save data to file
- * Index 2: back - Return to main menu
+ * Index 2: load - Load data from file
+ * Index 3: back - Return to main menu
  */
-static char* command_inputs_saves[3] = {"help", "save", "back"};
+static char* command_inputs_saves[4] = {"help", "save", "load", "back"};
 
 /**
  * @brief Parse a command line string into a structured command object.
@@ -128,7 +129,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
             break;
         case 2:  /* Saves menu context */
             command_inputs = command_inputs_saves;
-            length = 3;
+            length = 4;
             break;
         default:
             free(buffer);
@@ -192,7 +193,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                         /* Note: 'save' (i==14) no longer changes context - it saves directly */
                         break;
                     case 2:  /* Saves menu */
-                        if (i == 2) {
+                        if (i == 3) {
                             new_context = 0;  /* 'back' -> return to main menu */
                         }
                         break;
