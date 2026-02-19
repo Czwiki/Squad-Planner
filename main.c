@@ -76,7 +76,7 @@ int main(int argc, char const* argv[])
         if (strcmp(line, "exit") == 0 ) {
             clean_command(cmd);
             free(cmd);
-            execute_command(NULL, 99); // cleanup command to free formations and players
+            execute_command(NULL, SP_CONTEXT_CLEANUP);
             exit(EXIT_SUCCESS);
         }
 
@@ -152,7 +152,7 @@ int main(int argc, char const* argv[])
 
     clean_command(cmd);
     free(cmd);
-    execute_command(NULL, 99); // cleanup command to free formations and players
+    execute_command(NULL, SP_CONTEXT_CLEANUP);
     return 0;
 }
 

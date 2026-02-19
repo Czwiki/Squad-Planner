@@ -17,6 +17,7 @@
  * - -2: Invalid options/arguments for the command
  */
 
+#include "exec.h"
 #include "../command.h"
 #include "../help/help.h"
 #include "../formation/formation.h"
@@ -154,8 +155,8 @@ int exec_load_command(int cmd_id, char** args) {
  * @param context Current application context (0=main, 1=formation, 2=saves, 99=cleanup)
  */
 int execute_command(command* cmd, int context) {
-    /* context 99 is the cleanup sentinel – cmd may be NULL */
-    if (context == 99) {
+    /* SP_CONTEXT_CLEANUP is the cleanup sentinel – cmd may be NULL */
+    if (context == SP_CONTEXT_CLEANUP) {
         cleanup_all();
         return SP_SUCCESS;
     }

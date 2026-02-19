@@ -1068,8 +1068,12 @@ int delete_player(char** args, char** options) {
 /**
  * @brief Free all application resources.
  * 
- * Calls cleanup functions for all global data structures.
- * Should be called before program exit.
+ * Frees all formations, positions, and players. Resets all global
+ * pointers (formation_head, player_head, current_formation) to NULL.
+ * 
+ * @note After this call, current_formation is invalid (NULL).
+ *       This function should only be called during application shutdown
+ *       or before loading new data from a file (load_from_file).
  */
 void cleanup_all(void) {
     while (formation_head != NULL) {
