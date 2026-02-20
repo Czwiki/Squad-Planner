@@ -10,6 +10,21 @@
 #ifndef FORMATION_H
 #define FORMATION_H
 
+#include "position.h"
+
+/**
+ * @brief Represents a squad formation with assigned positions.
+ * 
+ * A formation contains a name and an array of 24 possible positions.
+ * Each position can be assigned (non-NULL) or unassigned (NULL).
+ * Formations are stored as a linked list.
+ */
+typedef struct formation {
+    char* name;                      /**< Formation name (unique identifier) */
+    position* map_of_positions[24];  /**< Array of position pointers (NULL if unassigned) */
+    struct formation* next;          /**< Next formation in the linked list */
+} formation;
+
 int get_current_formation_name(char* dest);
 
 /* Formation commands - ordered by command ID in parser.c */
@@ -55,5 +70,61 @@ int delete_player(char** args, char** options);
 
 /* Cleanup function - frees all formations and players */
 void cleanup_all(void);
+
+/* ========================================================================== */
+/* Persistence accessor functions                                             */
+/* ========================================================================== */
+
+/**
+ * @brief Get the head of the global player linked list.
+ *
+ * Used by the persistence module for serialization.
+ * @return Pointer to the first player, or NULL if list is empty.
+ */
+player* get_player_head(void);
+
+/**
+ * @brief Get the head of the global formation linked list.
+ *
+ * Used by the persistence module for serialization.
+ * @return Pointer to the first formation, or NULL if list is empty.
+ */
+formation* get_formation_head(void);
+
+/* Direct creation helpers – used by persistence load (bypass arg parsing) */
+
+/**
+ * @brief Create a player directly from typed values.
+ *
+ * @return SP_SUCCESS, SP_ERR_MEMORY, SP_ERR_PLAYER_EXISTS
+ */
+int create_player_direct(const char* name, int age,
+                         int overall, int potential, int own);
+
+/**
+ * @brief Create a formation directly from a name.
+ *
+ * The new formation becomes the current formation.
+ * @return SP_SUCCESS, SP_ERR_MEMORY, SP_ERR_FORMATION_EXISTS
+ */
+int create_formation_direct(const char* name);
+
+/**
+ * @brief Add a position slot to the current formation directly.
+ *
+ * @param position_name Position abbreviation (e.g. "GK", "ST")
+ * @return SP_SUCCESS, SP_ERR_INVALID_POSITION, SP_ERR_NO_FORMATION
+ */
+int add_position_direct(const char* position_name);
+
+/**
+ * @brief Assign an existing player to a position in the current formation.
+ *
+ * @param position_name Position abbreviation
+ * @param player_name   Player name (must exist in global list)
+ * @return SP_SUCCESS, SP_ERR_PLAYER_NOT_FOUND, SP_ERR_NO_FORMATION
+ */
+int add_player_to_position_direct(const char* position_name,
+                                  const char* player_name);
 
 #endif /* FORMATION_H */

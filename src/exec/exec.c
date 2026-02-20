@@ -17,9 +17,12 @@
  * - -2: Invalid options/arguments for the command
  */
 
+#include "exec.h"
 #include "../command.h"
 #include "../help/help.h"
 #include "../formation/formation.h"
+#include "../persistence/persistence.h"
+#include "../error/error.h"
 #include <stdio.h>
 
 /**
@@ -28,7 +31,7 @@
  * Handles commands available in the main menu:
  * - help: Display main menu help
  * - formation: (handled via context switch)
- * - load: (placeholder for future implementation)
+ * - load: (handled via context switch to saves menu)
  * 
  * @param cmd_id Command identifier (index in command list)
  */
@@ -99,8 +102,8 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     case 13: /* deleteP */
         ret_val = delete_player(args, options);
         break;
-    case 14:  /* save - TODO: implement persistence */
-        printf("Save functionality not yet implemented.\n");
+    case 14:  /* save – persist all data to JSON file */
+        ret_val = save_to_file(args ? args[0] : NULL);
         break;
     default:
         break;
@@ -111,11 +114,14 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
 /**
  * @brief Execute a command in the saves/load menu context.
  * 
- * Handles commands for saving and loading data.
- * TODO: Implement actual persistence functionality.
+ * Handles commands for saving and loading persistent data:
+ * - help: Display saves menu help
+ * - save: Write all data to JSON file
+ * - load: Read all data from JSON file
+ * - back: (handled via context switch)
  * 
  * @param cmd_id Command identifier
- * @param args Array of argument strings
+ * @param args Array of argument strings (optional filename)
  */
 int exec_load_command(int cmd_id, char** args) {
     int ret_val = 0;
@@ -123,10 +129,13 @@ int exec_load_command(int cmd_id, char** args) {
     case 0:  /* help */
         ret_val = print_help_page_saves();
         break;
-    case 1:  /* save - TODO: implement persistence */
-        printf("Save functionality not yet implemented.\n");
+    case 1:  /* save – persist all data to JSON file */
+        ret_val = save_to_file(args ? args[0] : NULL);
         break;
-    case 2:  /* back - handled via context switch */
+    case 2:  /* load – restore all data from JSON file */
+        ret_val = load_from_file(args ? args[0] : NULL);
+        break;
+    case 3:  /* back – handled via context switch */
         break;
     default:
         break;
@@ -140,11 +149,20 @@ int exec_load_command(int cmd_id, char** args) {
  * Routes a parsed command to the appropriate context-specific
  * executor function based on the current application context.
  * 
- * @param cmd Pointer to the parsed command structure
- * @param context Current application context (0=main, 1=formation, 2=saves)
+ * Special context 99 is used for cleanup on program exit.
+ * 
+ * @param cmd Pointer to the parsed command structure (may be NULL for cleanup)
+ * @param context Current application context (0=main, 1=formation, 2=saves, 99=cleanup)
  */
 int execute_command(command* cmd, int context) {
-    if (context != 99) printf("Executing command ID %d in context %d\n", cmd->id, context);
+    /* SP_CONTEXT_CLEANUP is the cleanup sentinel – cmd may be NULL */
+    if (context == SP_CONTEXT_CLEANUP) {
+        cleanup_all();
+        return SP_SUCCESS;
+    }
+    if (!cmd) return SP_ERR_NULL_PTR;
+
+    printf("Executing command ID %d in context %d\n", cmd->id, context);
     int ret_val = 0;
     switch (context) {
     case 0:  /* Main menu */
@@ -156,16 +174,13 @@ int execute_command(command* cmd, int context) {
     case 2:  /* Saves menu */
         ret_val = exec_load_command(cmd->id, cmd->args);
         break; 
-    case 99:
-        cleanup_all();
-        break;
     default:
         break;
     }
     return ret_val;
 }
 
-// interface to limit includes into main.c
+/* interface to limit includes into main.c */
 int current_formation_name(char* dest) {
     return get_current_formation_name(dest);
 }

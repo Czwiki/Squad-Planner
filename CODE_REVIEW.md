@@ -325,20 +325,102 @@ void test_new_formation(void) {
 ### Priorität 1 (Kritisch - Bugs):
 1. ✗ Memory Leaks bei Programmende
 2. ✗ Endlosschleife in `remove_player_from_position()`  
-3. ✗ NULL-Pointer-Check in `execute_command()` zu spät
+3. ✓ NULL-Pointer-Check in `execute_command()` – behoben (context==99 Guard + NULL-Check vor Zugriff)
 4. ✗ `remove_position_from_formation()` überspringt erstes Argument
 5. ✗ `list_formations()` - falscher `min_args` Parameter
 
 ### Priorität 2 (Features):
-1. ✗ Persistente Speicherung (Save/Load)
-2. ✗ Formation löschen
-3. ✗ Spieler löschen/bearbeiten
+1. ✓ Persistente Speicherung (Save/Load) – implementiert mit cJSON (JSON-Dateien)
+2. ✗ Formation löschen – bereits implementiert (`deletef`)
+3. ✗ Spieler löschen/bearbeiten – `deleteP` implementiert, Bearbeiten fehlt noch
 
 ### Priorität 3 (Verbesserungen):
-1. ✗ Cleanup-Funktionen
+1. ✓ Cleanup-Funktionen – `cleanup_all()` existiert und wird bei Exit/Load aufgerufen
 2. ✗ Input-Validierung verbessern
 3. ✗ Unit Tests
 
 ---
 
+## 6. Parser/Executor Verantwortlichkeiten – Analyse & Empfehlungen
+
+### 6.1 Kontextwechsel
+
+Die Kontextwechsel werden korrekt im Parser erkannt und in `cmd->future_context` gespeichert.
+In `main.c` wird bei `cmd->future_context != context` der Kontext gewechselt und die
+Ausführung übersprungen (`executing = 0`). Dies funktioniert nach den Änderungen einwandfrei:
+
+| Kontext | Befehl      | Aktion                     | Status |
+|---------|-------------|----------------------------|--------|
+| 0→1     | `formation` | Wechsel zum Formation-Menü | ✓      |
+| 0→2     | `load`      | Wechsel zum Saves-Menü     | ✓      |
+| 1→0     | `back`      | Zurück zum Hauptmenü       | ✓      |
+| 2→0     | `back`      | Zurück zum Hauptmenü       | ✓      |
+
+**Empfehlung**: Die Kontextwechsel-Logik ist aktuell zwischen Parser (Erkennung) und
+main.c (Umsetzung) aufgeteilt. Diese Trennung ist sauber. Allerdings:
+
+1. **Prompt-Update nach Kontextwechsel**: Nach einem Kontextwechsel wird kein Prompt
+   angezeigt, da `executing = 0` den gesamten Ausgabe-Block überspringt. Empfehlung:
+   Den `printf("%s", prompt)` Aufruf nach dem `if (executing)` Block verschieben, damit
+   der Prompt immer angezeigt wird.
+
+2. **Prompt-Update nach ungültigem Befehl**: Gleiches Problem – nach `SP_ERR_INVALID_CMD`
+   wird kein Prompt angezeigt.
+
+### 6.2 Aufgabenverteilung Parser ↔ Executor
+
+**Aktuelle Verteilung:**
+- **Parser**: Befehlserkennung, Kontextwechsel-Bestimmung, Token-Extraktion
+- **Executor**: Befehlsdispatch, Aufruf der Implementierungsfunktionen
+- **Formation-Modul**: Validierung von Argumenten (Sanity-Checks, Wertebereichsprüfung)
+
+**Empfehlungen für sauberere Trennung:**
+
+1. **Argumentanzahl-Validierung**: Die Prüfung der Argumentanzahl (`sanity_check_and_help`)
+   erfolgt aktuell in jedem Befehlshandler in `formation.c`. Diese Prüfung könnte stattdessen
+   im Executor (`exec.c`) zentral erfolgen, da die erwartete Argumentanzahl pro Befehl bekannt
+   ist. Dies würde die formation.c-Funktionen vereinfachen.
+
+2. **`--help`-Option**: Die Erkennung von `--help` erfolgt in jedem Befehlshandler über
+   `sanity_check_and_help()`. Dies könnte im Executor abgefangen werden, bevor der Handler
+   aufgerufen wird, da `--help` für alle Befehle gleich funktioniert.
+
+3. **Kontextwechsel im Parser**: Der Parser bestimmt aktuell den Kontextwechsel
+   (`new_context`). Alternativ könnte der Executor den Kontextwechsel bestimmen, da er
+   die Semantik der Befehle kennt. Der Parser wäre dann rein syntaktisch.
+   Allerdings ist die aktuelle Lösung ebenfalls akzeptabel, da der Kontextwechsel rein
+   von der Befehlsidentität abhängt (nicht vom Ergebnis der Ausführung).
+
+4. **`!args && !options` Check**: Jeder Befehlshandler prüft `!args && !options` am Anfang.
+   Dies könnte zentral im Executor erfolgen – für Befehle die mindestens ein Argument benötigen.
+
+---
+
+## 7. Windows-Kompatibilität
+
+### 7.1 Behobene Probleme
+
+| Problem | Lösung | Datei |
+|---------|--------|-------|
+| `<unistd.h>` nicht verfügbar unter MSVC | Conditional Include via `src/compat.h` | `main.c`, `src/compat.h` |
+| `strdup()` nicht in C99/MSVC | Macro `strdup` → `_strdup` für MSVC | `src/compat.h` |
+
+### 7.2 Verbleibende Windows-Hinweise
+
+1. **Makefile**: Verwendet `rm -f` (Unix). Unter Windows/MSVC muss `del /Q` verwendet werden,
+   oder MinGW/MSYS2 bereitstellen, wo `rm` verfügbar ist. Ein Kommentar im Makefile weist
+   darauf hin.
+
+2. **`CC = gcc`**: Unter MSVC ist der Compiler `cl`. MinGW stellt `gcc` bereit.
+   Für maximale Portabilität könnte CMake statt Make verwendet werden.
+
+3. **`-lm` (libm)**: Wird für cJSON benötigt (`math.h`-Funktionen). Unter MSVC ist
+   die Math-Bibliothek standardmäßig eingebunden, `-lm` wird nicht benötigt.
+
+4. **Pfadtrenner**: Das Projekt verwendet keine hartcodierten Pfadtrenner (`/` vs `\`).
+   Die JSON-Datei wird im aktuellen Verzeichnis gespeichert, was plattformunabhängig ist.
+
+---
+
 *Review erstellt am: 2026-02-16*
+*Aktualisiert am: 2026-02-19 – Persistence implementiert, Windows-Compat hinzugefügt, Parser/Executor-Analyse*

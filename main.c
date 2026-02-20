@@ -1,11 +1,11 @@
 #include "src/parser/parser.h"
 #include "src/exec/exec.h"
 #include "src/error/error.h"
+#include "src/compat.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
 
 # define MAX_INPUT_SIZE 200
 
@@ -76,7 +76,7 @@ int main(int argc, char const* argv[])
         if (strcmp(line, "exit") == 0 ) {
             clean_command(cmd);
             free(cmd);
-            execute_command(NULL, 99); // cleanup command to free formations and players
+            execute_command(NULL, SP_CONTEXT_CLEANUP);
             exit(EXIT_SUCCESS);
         }
 
@@ -152,7 +152,7 @@ int main(int argc, char const* argv[])
 
     clean_command(cmd);
     free(cmd);
-    execute_command(NULL, 99); // cleanup command to free formations and players
+    execute_command(NULL, SP_CONTEXT_CLEANUP);
     return 0;
 }
 

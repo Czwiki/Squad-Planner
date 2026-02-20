@@ -11,11 +11,15 @@
 
 #include "../command.h"
 
+/** @brief Sentinel context value used to trigger resource cleanup on exit. */
+#define SP_CONTEXT_CLEANUP 99
+
 /**
  * @brief Execute a parsed command in the given context.
  * 
- * @param cmd Pointer to the parsed command structure
- * @param context Current application context (0=main, 1=formation, 2=saves)
+ * @param cmd Pointer to the parsed command structure (may be NULL for cleanup)
+ * @param context Current application context (0=main, 1=formation, 2=saves,
+ *                SP_CONTEXT_CLEANUP=free all resources)
  * @return 0 on success, negative on error
  */
 int execute_command(command* cmd, int context);

@@ -37,6 +37,7 @@
  * - Players are stored in a separate global linked list (player_head)
  */
 
+#include "formation.h"
 #include "position.h"
 #include "../error/error.h"
 #include <stdio.h>
@@ -47,19 +48,6 @@
 // help declaration, needed before it is defined
 int open_formation(char** args, char** options);
 
-
-/**
- * @brief Represents a squad formation with assigned positions.
- * 
- * A formation contains a name and an array of 24 possible positions.
- * Each position can be assigned (non-NULL) or unassigned (NULL).
- * Formations are stored as a linked list.
- */
-typedef struct formation {
-    char* name;                      /**< Formation name (unique identifier) */
-    position* map_of_positions[24];  /**< Array of position pointers (NULL if unassigned) */
-    struct formation* next;          /**< Next formation in the linked list */
-} formation;
 
 /**
  * @brief Array of valid position abbreviations.
@@ -1067,8 +1055,12 @@ int delete_player(char** args, char** options) {
 /**
  * @brief Free all application resources.
  * 
- * Calls cleanup functions for all global data structures.
- * Should be called before program exit.
+ * Frees all formations, positions, and players. Resets all global
+ * pointers (formation_head, player_head, current_formation) to NULL.
+ * 
+ * @note After this call, current_formation is invalid (NULL).
+ *       This function should only be called during application shutdown
+ *       or before loading new data from a file (load_from_file).
  */
 void cleanup_all(void) {
     while (formation_head != NULL) {
@@ -1076,9 +1068,133 @@ void cleanup_all(void) {
         formation_head = formation_head->next;
         cleanup_formation(temp);
     }
+    current_formation = NULL;
     while (player_head != NULL) {
         player* temp = player_head;
         player_head = player_head->next;
         cleanup_player(temp);
     }
+}
+
+/* ========================================================================== */
+/* Persistence Accessor Functions                                             */
+/* ========================================================================== */
+
+/*
+ * These functions expose the static head pointers so that the persistence
+ * module can traverse the player and formation linked lists directly.
+ * The struct definitions are already public via formation.h / player.h,
+ * so no opaque wrappers are needed.
+ */
+
+player* get_player_head(void) {
+    return player_head;
+}
+
+formation* get_formation_head(void) {
+    return formation_head;
+}
+
+/* --- Direct creation helpers for persistence load --- */
+
+int create_player_direct(const char* name, int age,
+                         int overall, int potential, int own) {
+    if (!name) return SP_ERR_NULL_PTR;
+
+    /* Check for duplicate */
+    if (find_player_by_name((char*)name)) {
+        return SP_ERR_PLAYER_EXISTS;
+    }
+
+    player* new_p = malloc(sizeof(player));
+    if (!new_p) return SP_ERR_MEMORY;
+    new_p->name = strdup(name);
+    if (!new_p->name) { free(new_p); return SP_ERR_MEMORY; }
+    new_p->age = age;
+    new_p->overall_rating = overall;
+    new_p->potential_rating = potential;
+    new_p->own_rating = own;
+    new_p->next = NULL;
+
+    /* Append to player list */
+    if (!player_head) {
+        player_head = new_p;
+    } else {
+        player* cur = player_head;
+        while (cur->next) cur = cur->next;
+        cur->next = new_p;
+    }
+    return SP_SUCCESS;
+}
+
+int create_formation_direct(const char* name) {
+    if (!name) return SP_ERR_NULL_PTR;
+
+    /* Use a temporary args array to reuse new_formation() logic inline */
+    formation* cur = formation_head;
+    while (cur) {
+        if (strcmp(cur->name, name) == 0) return SP_ERR_FORMATION_EXISTS;
+        cur = cur->next;
+    }
+
+    formation* new_f = malloc(sizeof(formation));
+    if (!new_f) return SP_ERR_MEMORY;
+    new_f->name = strdup(name);
+    if (!new_f->name) { free(new_f); return SP_ERR_MEMORY; }
+    new_f->next = NULL;
+    for (int i = 0; i < 24; i++) new_f->map_of_positions[i] = NULL;
+
+    /* Append to list */
+    if (!formation_head) {
+        formation_head = new_f;
+    } else {
+        formation* tail = formation_head;
+        while (tail->next) tail = tail->next;
+        tail->next = new_f;
+    }
+    current_formation = new_f;
+    return SP_SUCCESS;
+}
+
+int add_position_direct(const char* position_name) {
+    if (!current_formation) return SP_ERR_NO_FORMATION;
+    if (!position_name) return SP_ERR_NULL_PTR;
+
+    int pid = parse_position_string((char*)position_name);
+    if (pid == -1) return SP_ERR_INVALID_POSITION;
+
+    /* If already assigned, skip silently (idempotent) */
+    if (current_formation->map_of_positions[pid]) return SP_SUCCESS;
+
+    position* pos = malloc(sizeof(position));
+    if (!pos) return SP_ERR_MEMORY;
+    pos->id = pid;
+    pos->name = get_position_name(pid);
+    pos->size_of_list = 0;
+    pos->list_of_players = NULL;
+    current_formation->map_of_positions[pid] = pos;
+    return SP_SUCCESS;
+}
+
+int add_player_to_position_direct(const char* position_name,
+                                  const char* player_name) {
+    if (!current_formation) return SP_ERR_NO_FORMATION;
+    if (!position_name || !player_name) return SP_ERR_NULL_PTR;
+
+    int pid = parse_position_string((char*)position_name);
+    if (pid == -1) return SP_ERR_INVALID_POSITION;
+    if (!current_formation->map_of_positions[pid])
+        return SP_ERR_NOT_ASSIGNED_POSITION;
+
+    player* p = find_player_by_name((char*)player_name);
+    if (!p) return SP_ERR_PLAYER_NOT_FOUND;
+
+    position* pos = current_formation->map_of_positions[pid];
+    player** new_list = realloc(pos->list_of_players,
+                                sizeof(player*) * (pos->size_of_list + 1));
+    if (!new_list) return SP_ERR_MEMORY;
+    new_list[pos->size_of_list] = p;
+    pos->list_of_players = new_list;
+    pos->size_of_list++;
+    return SP_SUCCESS;
 }
