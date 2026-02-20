@@ -137,13 +137,7 @@ User Input → parser (tokenize/validate) → command struct → exec (dispatch)
 
 The project uses numeric error codes (see `src/error/error.h`).
 
-## Future Improvements
-
-### Planned Features
-- [ ] **Data Persistence**: Save/load formations and players to files
-- [ ] **Export Options**: Export formations to different formats
-
-### Code Improvements
+### Pending Code Improvements
 - [ ] Add unit tests for core functions
 - [ ] Implement the saves menu fully
 
