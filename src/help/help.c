@@ -54,7 +54,7 @@ int print_help_page_formation(void) {
     printf("10. listf     - List all formations\n");
     printf("11. open      - Open a formation file\n");
     printf("12. show      - Show the current formation in tactical view\n");
-    printf("13. save      - Save all data to JSON file\n");
+    printf("13. save      - Save data\n");
     printf("14. back      - Return to the main menu\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
@@ -76,8 +76,8 @@ int print_help_page_saves(void) {
     printf("-------------------\n");
     printf("Available commands in the saves menu:\n");
     printf("1. help - Display this help\n");
-    printf("2. save [filename] - Save all data to JSON file (default: %s)\n", "squad_planner_data.json");
-    printf("3. load [filename] - Load data from JSON file (default: %s)\n", "squad_planner_data.json");
+    printf("2. save [filename] - Save data\n");
+    printf("3. load [filename] - Load data\n");
     printf("4. back - Return to main menu\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {

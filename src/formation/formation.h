@@ -10,6 +10,21 @@
 #ifndef FORMATION_H
 #define FORMATION_H
 
+#include "position.h"
+
+/**
+ * @brief Represents a squad formation with assigned positions.
+ * 
+ * A formation contains a name and an array of 24 possible positions.
+ * Each position can be assigned (non-NULL) or unassigned (NULL).
+ * Formations are stored as a linked list.
+ */
+typedef struct formation {
+    char* name;                      /**< Formation name (unique identifier) */
+    position* map_of_positions[24];  /**< Array of position pointers (NULL if unassigned) */
+    struct formation* next;          /**< Next formation in the linked list */
+} formation;
+
 int get_current_formation_name(char* dest);
 
 /* Formation commands - ordered by command ID in parser.c */
@@ -57,60 +72,24 @@ int delete_player(char** args, char** options);
 void cleanup_all(void);
 
 /* ========================================================================== */
-/* Persistence accessor types and functions                                   */
+/* Persistence accessor functions                                             */
 /* ========================================================================== */
 
 /**
- * @brief Opaque iterator for reading player data during serialization.
+ * @brief Get the head of the global player linked list.
  *
- * Used by the persistence module to traverse the global player list
- * without exposing internal data structures.
+ * Used by the persistence module for serialization.
+ * @return Pointer to the first player, or NULL if list is empty.
  */
-typedef struct player_iter player_iter;
+player* get_player_head(void);
 
 /**
- * @brief Opaque iterator for reading formation data during serialization.
+ * @brief Get the head of the global formation linked list.
  *
- * Used by the persistence module to traverse the global formation list
- * without exposing internal data structures.
+ * Used by the persistence module for serialization.
+ * @return Pointer to the first formation, or NULL if list is empty.
  */
-typedef struct formation_iter formation_iter;
-
-/* Player iteration – used by persistence save */
-player_iter* player_iter_first(void);
-player_iter* player_iter_next(player_iter* it);
-const char*  player_iter_name(const player_iter* it);
-int          player_iter_age(const player_iter* it);
-int          player_iter_overall(const player_iter* it);
-int          player_iter_potential(const player_iter* it);
-int          player_iter_own(const player_iter* it);
-
-/* Formation iteration – used by persistence save */
-formation_iter* formation_iter_first(void);
-formation_iter* formation_iter_next(formation_iter* it);
-const char*     formation_iter_name(const formation_iter* it);
-
-/**
- * @brief Get position info for a formation at the given slot (0-23).
- *
- * @param it  Formation iterator
- * @param slot Position slot index (0-23)
- * @param out_name  Set to the position abbreviation, or NULL if slot is empty
- * @param out_count Set to the number of players assigned
- * @return 1 if the slot is occupied, 0 if empty
- */
-int formation_iter_position(const formation_iter* it, int slot,
-                            const char** out_name, int* out_count);
-
-/**
- * @brief Get the name of the k-th player in a position slot.
- *
- * @param it   Formation iterator
- * @param slot Position slot index (0-23)
- * @param k    Player index within the position's list
- * @return Player name, or NULL on error
- */
-const char* formation_iter_pos_player(const formation_iter* it, int slot, int k);
+formation* get_formation_head(void);
 
 /* Direct creation helpers – used by persistence load (bypass arg parsing) */
 

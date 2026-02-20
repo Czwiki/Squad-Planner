@@ -50,19 +50,6 @@ int open_formation(char** args, char** options);
 
 
 /**
- * @brief Represents a squad formation with assigned positions.
- * 
- * A formation contains a name and an array of 24 possible positions.
- * Each position can be assigned (non-NULL) or unassigned (NULL).
- * Formations are stored as a linked list.
- */
-typedef struct formation {
-    char* name;                      /**< Formation name (unique identifier) */
-    position* map_of_positions[24];  /**< Array of position pointers (NULL if unassigned) */
-    struct formation* next;          /**< Next formation in the linked list */
-} formation;
-
-/**
  * @brief Array of valid position abbreviations.
  * 
  * Indices correspond to typical soccer positions:
@@ -1094,78 +1081,18 @@ void cleanup_all(void) {
 /* ========================================================================== */
 
 /*
- * The following functions provide read-only iteration over the internal
- * data structures. They are used by the persistence module to serialize
- * players and formations to JSON without exposing the static globals or
- * struct definitions outside of this translation unit.
- *
- * The opaque iterator types (player_iter, formation_iter) are defined
- * in formation.h as forward declarations; internally they map directly
- * to the real player/formation structs via casts.
+ * These functions expose the static head pointers so that the persistence
+ * module can traverse the player and formation linked lists directly.
+ * The struct definitions are already public via formation.h / player.h,
+ * so no opaque wrappers are needed.
  */
 
-/* --- Player iteration --- */
-
-player_iter* player_iter_first(void) {
-    return (player_iter*) player_head;
+player* get_player_head(void) {
+    return player_head;
 }
 
-player_iter* player_iter_next(player_iter* it) {
-    if (!it) return NULL;
-    return (player_iter*)(((player*)it)->next);
-}
-
-const char* player_iter_name(const player_iter* it) {
-    return it ? ((const player*)it)->name : NULL;
-}
-
-int player_iter_age(const player_iter* it) {
-    return it ? ((const player*)it)->age : 0;
-}
-
-int player_iter_overall(const player_iter* it) {
-    return it ? ((const player*)it)->overall_rating : 0;
-}
-
-int player_iter_potential(const player_iter* it) {
-    return it ? ((const player*)it)->potential_rating : 0;
-}
-
-int player_iter_own(const player_iter* it) {
-    return it ? ((const player*)it)->own_rating : 0;
-}
-
-/* --- Formation iteration --- */
-
-formation_iter* formation_iter_first(void) {
-    return (formation_iter*) formation_head;
-}
-
-formation_iter* formation_iter_next(formation_iter* it) {
-    if (!it) return NULL;
-    return (formation_iter*)(((formation*)it)->next);
-}
-
-const char* formation_iter_name(const formation_iter* it) {
-    return it ? ((const formation*)it)->name : NULL;
-}
-
-int formation_iter_position(const formation_iter* it, int slot,
-                            const char** out_name, int* out_count) {
-    if (!it || slot < 0 || slot >= 24) return 0;
-    const formation* f = (const formation*)it;
-    if (!f->map_of_positions[slot]) return 0;
-    if (out_name)  *out_name  = f->map_of_positions[slot]->name;
-    if (out_count) *out_count = f->map_of_positions[slot]->size_of_list;
-    return 1;
-}
-
-const char* formation_iter_pos_player(const formation_iter* it, int slot, int k) {
-    if (!it || slot < 0 || slot >= 24) return NULL;
-    const formation* f = (const formation*)it;
-    if (!f->map_of_positions[slot]) return NULL;
-    if (k < 0 || k >= f->map_of_positions[slot]->size_of_list) return NULL;
-    return f->map_of_positions[slot]->list_of_players[k]->name;
+formation* get_formation_head(void) {
+    return formation_head;
 }
 
 /* --- Direct creation helpers for persistence load --- */

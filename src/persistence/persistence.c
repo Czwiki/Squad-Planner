@@ -24,8 +24,8 @@
  * Integration:
  * - save_to_file() is called from exec.c when the user issues the 'save' command.
  * - load_from_file() is called from exec.c when the user issues the 'load' command.
- * - Both functions use the accessor/iterator API from formation.h to avoid
- *   direct access to static internal data in formation.c.
+ * - Serialization traverses the player and formation linked lists directly
+ *   via get_player_head() / get_formation_head() from formation.h.
  */
 
 #include "persistence.h"
@@ -43,8 +43,8 @@
 /**
  * @brief Serialize all players into a cJSON array.
  *
- * Iterates over the global player list using the player_iter API
- * and creates a JSON array of player objects.
+ * Traverses the global player linked list and creates a JSON array
+ * of player objects.
  *
  * @return cJSON array on success, NULL on memory error
  */
@@ -52,15 +52,15 @@ static cJSON* serialize_players(void) {
     cJSON* arr = cJSON_CreateArray();
     if (!arr) return NULL;
 
-    for (player_iter* it = player_iter_first(); it; it = player_iter_next(it)) {
+    for (player* p = get_player_head(); p; p = p->next) {
         cJSON* obj = cJSON_CreateObject();
         if (!obj) { cJSON_Delete(arr); return NULL; }
 
-        cJSON_AddStringToObject(obj, "name",      player_iter_name(it));
-        cJSON_AddNumberToObject(obj, "age",        player_iter_age(it));
-        cJSON_AddNumberToObject(obj, "overall",    player_iter_overall(it));
-        cJSON_AddNumberToObject(obj, "potential",  player_iter_potential(it));
-        cJSON_AddNumberToObject(obj, "own_rating", player_iter_own(it));
+        cJSON_AddStringToObject(obj, "name",      p->name);
+        cJSON_AddNumberToObject(obj, "age",        p->age);
+        cJSON_AddNumberToObject(obj, "overall",    p->overall_rating);
+        cJSON_AddNumberToObject(obj, "potential",  p->potential_rating);
+        cJSON_AddNumberToObject(obj, "own_rating", p->own_rating);
 
         cJSON_AddItemToArray(arr, obj);
     }
@@ -70,7 +70,7 @@ static cJSON* serialize_players(void) {
 /**
  * @brief Serialize all formations into a cJSON array.
  *
- * Iterates over formations and their position slots, building a
+ * Traverses the formation linked list and their position slots, building a
  * JSON array of formation objects each containing their positions
  * and assigned players (in preference order).
  *
@@ -80,36 +80,33 @@ static cJSON* serialize_formations(void) {
     cJSON* arr = cJSON_CreateArray();
     if (!arr) return NULL;
 
-    for (formation_iter* it = formation_iter_first(); it;
-         it = formation_iter_next(it)) {
+    for (formation* f = get_formation_head(); f; f = f->next) {
         cJSON* f_obj = cJSON_CreateObject();
         if (!f_obj) { cJSON_Delete(arr); return NULL; }
 
-        cJSON_AddStringToObject(f_obj, "name", formation_iter_name(it));
+        cJSON_AddStringToObject(f_obj, "name", f->name);
 
         cJSON* pos_arr = cJSON_CreateArray();
         if (!pos_arr) { cJSON_Delete(f_obj); cJSON_Delete(arr); return NULL; }
 
         /* Iterate over all 24 possible position slots */
         for (int slot = 0; slot < 24; slot++) {
-            const char* pos_name = NULL;
-            int count = 0;
-            if (!formation_iter_position(it, slot, &pos_name, &count)) {
-                continue;  /* slot unoccupied */
-            }
+            position* pos = f->map_of_positions[slot];
+            if (!pos) continue;  /* slot unoccupied */
 
             cJSON* p_obj = cJSON_CreateObject();
             if (!p_obj) { cJSON_Delete(pos_arr); cJSON_Delete(f_obj); cJSON_Delete(arr); return NULL; }
 
             cJSON_AddNumberToObject(p_obj, "slot", slot);
-            cJSON_AddStringToObject(p_obj, "name", pos_name);
+            cJSON_AddStringToObject(p_obj, "name", pos->name);
 
             /* Player names in preference order */
             cJSON* pl_arr = cJSON_CreateArray();
             if (!pl_arr) { cJSON_Delete(p_obj); cJSON_Delete(pos_arr); cJSON_Delete(f_obj); cJSON_Delete(arr); return NULL; }
-            for (int k = 0; k < count; k++) {
-                const char* pn = formation_iter_pos_player(it, slot, k);
-                if (pn) cJSON_AddItemToArray(pl_arr, cJSON_CreateString(pn));
+            for (int k = 0; k < pos->size_of_list; k++) {
+                if (pos->list_of_players[k]) {
+                    cJSON_AddItemToArray(pl_arr, cJSON_CreateString(pos->list_of_players[k]->name));
+                }
             }
             cJSON_AddItemToObject(p_obj, "players", pl_arr);
             cJSON_AddItemToArray(pos_arr, p_obj);
