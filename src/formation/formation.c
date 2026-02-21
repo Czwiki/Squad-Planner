@@ -48,7 +48,6 @@
 // help declaration, needed before it is defined
 int open_formation(char** args, char** options);
 
-
 /**
  * @brief Array of valid position abbreviations.
  * 
@@ -89,16 +88,6 @@ static int count_tokens(char** args) {
     if (!args) return 0;
     while (args[i]) i++;
     return i; 
-}
-
-// helper function for correct prompt in main.c
-int get_current_formation_name(char *dest) {
-    if (!current_formation) {
-        return SP_ERR_NO_FORMATION;
-    }
-    strncpy(dest, current_formation->name, 40);  // copy up to 39 characters + null terminator
-    dest[39] = '\0';  // ensure null termination
-    return SP_SUCCESS;
 }
 
 /**
@@ -158,7 +147,7 @@ static int parse_position_string(char* position_str) {
  * @param name Player name string to clean
  * @return SP_SUCCESS on success, SP_ERR_MEMORY if name is NULL
  */
-static int clean_player_name(char* name) {
+static int clean_name_string(char* name) {
     if (!name) {
         return SP_ERR_MEMORY;
     }
@@ -167,6 +156,20 @@ static int clean_player_name(char* name) {
             name[i] = ' ';
         }
     }
+    return SP_SUCCESS;
+}
+
+// helper function for correct prompt in main.c
+int get_current_formation_name(char *dest) {
+    if (!current_formation) {
+        dest[0] = '\0';  // set dest to empty string
+        return SP_ERR_NO_FORMATION;  // No formation currently open, return empty name
+    }
+    char cleaned_name[40];
+    strncpy(cleaned_name, current_formation->name, 40);  // copy up to 39 characters + null terminator
+    clean_name_string(cleaned_name);
+    strncpy(dest, cleaned_name, 40);  // copy up to 39 characters + null terminator
+    dest[39] = '\0';  // ensure null termination
     return SP_SUCCESS;
 }
 
@@ -259,7 +262,7 @@ int new_formation(char** args, char** options) {
         return SP_ERR_WRONG_USAGE;
     }
     char *usage = "new <formation_name>[max. 39 characters] [--help]";
-    char *description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation.";
+    char *description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation. If you wish to use a name consisting of multiple words, use underscores instead of spaces(e.g., '4_3_3', '4_2_3_1'). The new formation becomes the current formation for editing.";
     int sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
 
     if (sanity_check != 0) {
@@ -789,14 +792,13 @@ int list_players_of_position(char** args, char** options) {
         if (!cleaned_name) {
             return SP_ERR_MEMORY;
         }
-        if (clean_player_name(cleaned_name) != SP_SUCCESS) {
+        if (clean_name_string(cleaned_name) != SP_SUCCESS) {
             free(cleaned_name);
             return SP_ERR_MEMORY;
         }
         printf("- %s\n", cleaned_name);
         free(cleaned_name);
     }
-
     return SP_SUCCESS;
 }
 
@@ -1046,6 +1048,57 @@ int delete_player(char** args, char** options) {
     return SP_SUCCESS;
 }
 
+int edit_player(char** args, char** options) {
+    if (!args && !options) {
+        return SP_ERR_WRONG_USAGE;
+    }
+    char *usage = "editP <player_name> <attribute> <new_value> [--help]";
+    char *description = "Edits the specified attribute of a player. Attributes can be 'age', 'overall', 'potential', or 'own'. The player must already exist.";
+    int sanity_check = sanity_check_and_help(args, options, 3, 3, 1, 0, usage, description);
+    if (sanity_check != 0) {
+        if (sanity_check == 1) return SP_SUCCESS;
+        return sanity_check;
+    }
+    player* p = find_player_by_name(args[0]);
+    if (!p) {
+        return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found */
+    }
+    char* attribute = args[1];
+    char* new_value_str = args[2];
+    
+    errno = 0;
+    char *endptr;
+    int new_value = strtol(new_value_str, &endptr, 10);
+    if (errno == ERANGE || endptr == new_value_str) {
+        return SP_ERR_INTERNAL;  /* Conversion error */
+    }
+
+    if (strcmp(attribute, "age") == 0) {
+        if (new_value <= 0) {
+            return SP_ERR_INVALID_RANGE;  /* Age must be greater than 0 */
+        }
+        p->age = new_value;
+    } else if (strcmp(attribute, "overall") == 0) {
+        if (new_value < 0 || new_value > 100) {
+            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
+        }
+        p->overall_rating = new_value;
+    } else if (strcmp(attribute, "potential") == 0) {
+        if (new_value < 0 || new_value > 100) {
+            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
+        }
+        p->potential_rating = new_value;
+    } else if (strcmp(attribute, "own") == 0) {
+        if (new_value < 0 || new_value > 100) {
+            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
+        }
+        p->own_rating = new_value;
+    } else {
+        return SP_ERR_INVALID_CMD;  /* Invalid attribute */
+    }
+    return SP_SUCCESS;
+}
+
 
 
 /* ========================================================================== */
@@ -1196,5 +1249,10 @@ int add_player_to_position_direct(const char* position_name,
     new_list[pos->size_of_list] = p;
     pos->list_of_players = new_list;
     pos->size_of_list++;
+    return SP_SUCCESS;
+}
+
+int setting_no_current_formation(void) {
+    current_formation = NULL;
     return SP_SUCCESS;
 }

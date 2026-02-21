@@ -68,6 +68,11 @@ int delete_formation(char** args, char** options);
 /* ID 13: deleteP - Remove an existing player */
 int delete_player(char** args, char** options);
 
+/* ID 14: editP - Edit an existing player */
+int edit_player(char** args, char** options);
+
+/**/
+
 /* Cleanup function - frees all formations and players */
 void cleanup_all(void);
 
@@ -126,5 +131,7 @@ int add_position_direct(const char* position_name);
  */
 int add_player_to_position_direct(const char* position_name,
                                   const char* player_name);
+
+int setting_no_current_formation(void);
 
 #endif /* FORMATION_H */

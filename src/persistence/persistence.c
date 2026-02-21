@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /* ========================================================================== */
 /* Save: Serialize application state to JSON file                             */
@@ -139,18 +140,38 @@ int save_to_file(const char* filename) {
     if (!json_str) return SP_ERR_MEMORY;
 
     /* Write to file */
-    FILE* fp = fopen(filename, "w");
+    char* fname = strdup(filename);
+    if (!fname) { cJSON_free(json_str); return SP_ERR_MEMORY; }
+    char* temp = realloc(fname, strlen(fname) + 5);  /* Add space for ".json" */
+    if (!temp) { free(fname); cJSON_free(json_str); return SP_ERR_MEMORY; }
+    fname = temp;
+    int len = strlen(fname);
+    fname[len] = '.';
+    fname[len+1] = 'j';
+    fname[len+2] = 's';
+    fname[len+3] = 'o';
+    fname[len+4] = 'n';
+    fname[len+5] = '\0';  /* Ensure null-termination */
+    if (chdir("./saves") != 0) {
+        cJSON_free(json_str);
+        free(fname);
+        return SP_ERR_FILE_OPEN;  /* Could not change to saves directory */
+    }
+    FILE* fp = fopen(fname, "w");
     if (!fp) {
         cJSON_free(json_str);
+        free(fname);
         return SP_ERR_FILE_OPEN;
     }
     if (fputs(json_str, fp) == EOF) {
         fclose(fp);
         cJSON_free(json_str);
+        free(fname);
         return SP_ERR_FILE_WRITE;
     }
     fclose(fp);
     cJSON_free(json_str);
+    free(fname);
 
     printf("Data saved to '%s'.\n", filename);
     return SP_SUCCESS;
@@ -168,21 +189,41 @@ int save_to_file(const char* filename) {
  *         Caller must free() the returned pointer.
  */
 static char* read_file_contents(const char* filename) {
-    FILE* fp = fopen(filename, "r");
-    if (!fp) return NULL;
+    if (chdir("./saves") != 0) {
+        return NULL;  /* Could not change to saves directory */
+    }
+
+    char* fname = strdup(filename);
+    if (!fname) { return NULL; }
+    char* temp = realloc(fname, strlen(fname) + 5);  /* Add space for ".json" */
+    if (!temp) { free(fname); return NULL; }
+    fname = temp;
+    int len = strlen(fname);
+    fname[len] = '.';
+    fname[len+1] = 'j';
+    fname[len+2] = 's';
+    fname[len+3] = 'o';
+    fname[len+4] = 'n';
+    fname[len+5] = '\0';  /* Ensure null-termination */
+    FILE* fp = fopen(fname, "r");
+    if (!fp) {
+        free(fname);
+        return NULL;
+    }
 
     /* Determine file size */
-    if (fseek(fp, 0, SEEK_END) != 0) { fclose(fp); return NULL; }
+    if (fseek(fp, 0, SEEK_END) != 0) { fclose(fp); free(fname); return NULL; }
     long length = ftell(fp);
-    if (length < 0) { fclose(fp); return NULL; }
-    if (fseek(fp, 0, SEEK_SET) != 0) { fclose(fp); return NULL; }
+    if (length < 0) { fclose(fp); free(fname); return NULL; }
+    if (fseek(fp, 0, SEEK_SET) != 0) { fclose(fp); free(fname); return NULL; }
 
     char* buffer = malloc((size_t)length + 1);
-    if (!buffer) { fclose(fp); return NULL; }
+    if (!buffer) { fclose(fp); free(fname); return NULL; }
 
     size_t read = fread(buffer, 1, (size_t)length, fp);
     fclose(fp);
     buffer[read] = '\0';
+    free(fname);
     return buffer;
 }
 

@@ -68,16 +68,39 @@ int main(int argc, char const* argv[])
             int c;
             while ((c = getchar()) != '\n' && c != EOF);
             printf("%s", prompt);
+            if (fflush(stdout) != 0) {
+                die("Error flushing stdout: ");
+            }
             continue;
         }
         if (line[strlen(line) - 1] == '\n') {
             line[strlen(line) - 1] = '\0';
         }
         if (strcmp(line, "exit") == 0 ) {
-            clean_command(cmd);
-            free(cmd);
-            execute_command(NULL, SP_CONTEXT_CLEANUP);
-            exit(EXIT_SUCCESS);
+            fprintf(stderr, "Did you save everything? If not, press 'c' to abort and save before exiting. Otherwise, press 'q' to exit without saving.\n");
+            char confirm;
+            while (1) {
+                confirm = getchar();
+                while (getchar() != '\n');  // Clear the input buffer
+                if (confirm == EOF) {
+                    die("Error reading input: ");
+                }
+                if (confirm == 'q' || confirm == 'c') {
+                    break;
+                }
+                fprintf(stderr, "Invalid input. Press 'c' to abort and save before exiting, or press 'q' to exit without saving.\n");
+            }
+            if (confirm == 'q') {
+                clean_command(cmd);
+                free(cmd);
+                execute_command(NULL, SP_CONTEXT_CLEANUP);
+                exit(EXIT_SUCCESS);
+            }
+            printf("%s", prompt);
+            if (fflush(stdout) != 0) {
+                die("Error flushing stdout: ");
+            }
+            continue;
         }
 
         int executing = 1;
@@ -136,18 +159,29 @@ int main(int argc, char const* argv[])
                             die("Error setting prompt: ");
                         }
                     } 
-                    else {
+                    else if (result == SP_ERR_NO_FORMATION) {
+                        if (snprintf(prompt, 70, "squad-planner - formation> ") < 0) {
+                            die("Error setting prompt: ");
+                        }
+                    } else {
                         die("Error getting current formation name: ");
                     }
                 }
             }
-            printf("%s", prompt);
-            clean_command(cmd);
         }
+        printf("%s", prompt);
+        if (fflush(stdout) != 0) {
+            die("Error flushing stdout: ");
+        }
+        clean_command(cmd);
     }
     
     if (ferror(stdin)) {
         die("Error reading line: ");
+    }
+
+    if (fflush(stdout) != 0) {
+        die("Error flushing stdout: ");
     }
 
     clean_command(cmd);

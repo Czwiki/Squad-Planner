@@ -102,7 +102,10 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
     case 13: /* deleteP */
         ret_val = delete_player(args, options);
         break;
-    case 14:  /* save – persist all data to JSON file */
+    case 14:  /* editP */
+        ret_val = edit_player(args, options);
+        break;
+    case 15:  /* save – persist all data to JSON file */
         ret_val = save_to_file(args ? args[0] : NULL);
         break;
     default:
@@ -121,9 +124,10 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
  * - back: (handled via context switch)
  * 
  * @param cmd_id Command identifier
+ * @param options Array of option strings (may be NULL)
  * @param args Array of argument strings (optional filename)
  */
-int exec_load_command(int cmd_id, char** args) {
+int exec_load_command(int cmd_id, char** options, char** args) {
     int ret_val = 0;
     switch (cmd_id) {
     case 0:  /* help */
@@ -134,6 +138,9 @@ int exec_load_command(int cmd_id, char** args) {
         break;
     case 2:  /* load – restore all data from JSON file */
         ret_val = load_from_file(args ? args[0] : NULL);
+        if (ret_val == SP_SUCCESS) {
+            setting_no_current_formation();
+        }
         break;
     case 3:  /* back – handled via context switch */
         break;
@@ -172,7 +179,7 @@ int execute_command(command* cmd, int context) {
         ret_val = exec_formation_command(cmd->id, cmd->options, cmd->args);
         break;
     case 2:  /* Saves menu */
-        ret_val = exec_load_command(cmd->id, cmd->args);
+        ret_val = exec_load_command(cmd->id, cmd->options, cmd->args);
         break; 
     default:
         break;
