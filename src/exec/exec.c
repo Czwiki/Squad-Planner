@@ -88,7 +88,7 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
         ret_val = list_players_of_position(args, options);
         break;
     case 9:   /* listf */
-        ret_val = list_formations(options);
+        ret_val = list_formations(args, options);
         break;
     case 10:  /* open */
         ret_val = open_formation(args, options);

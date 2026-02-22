@@ -121,21 +121,25 @@ int main(int argc, char const* argv[])
         }
 
         if (cmd->future_context != context) {
+            int ret_val = 0;
             switch (cmd->future_context) {
                 case 0:
-                    if (snprintf(prompt, 70, "squad-planner - main> ") < 0) {
+                    ret_val = snprintf(prompt, 70, "squad-planner - main> ");
+                    if (ret_val < 0 || ret_val >= 70) {
                         die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
                 case 1:
-                    if (snprintf(prompt, 70, "squad-planner - formation> ") < 0) {
+                    ret_val = snprintf(prompt, 70, "squad-planner - formation> ");
+                    if (ret_val < 0 || ret_val >= 70) {
                         die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
                 case 2:
-                    if (snprintf(prompt, 70, "squad-planner - saves> ") < 0) {
+                    ret_val = snprintf(prompt, 70, "squad-planner - saves> ");
+                    if (ret_val < 0 || ret_val >= 70) {
                         die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
@@ -151,19 +155,22 @@ int main(int argc, char const* argv[])
             int ret_val = execute_command(cmd, context);
             printf("%s\n", sp_error_string(ret_val));
             if (ret_val == SP_SUCCESS) {
-                if (context == 1) { // formation command 'new' or 'open'
+                if (context == 1) { // formation menu dynamic prompt
                     char in[40] = {0};
                     int result = current_formation_name(in);
                     if (result == SP_SUCCESS) {
-                        if (snprintf(prompt, 70, "squad-planner - '%s' formation> ", in) < 0) {
+                        ret_val = snprintf(prompt, 70, "squad-planner - '%s' formation> ", in);
+                        if (ret_val < 0 || ret_val >= 70) {
                             die("Error setting prompt: ");
                         }
                     } 
                     else if (result == SP_ERR_NO_FORMATION) {
-                        if (snprintf(prompt, 70, "squad-planner - formation> ") < 0) {
+                        ret_val = snprintf(prompt, 70, "squad-planner - formation> ");
+                        if (ret_val < 0 || ret_val >= 70) {
                             die("Error setting prompt: ");
                         }
-                    } else {
+                    }
+                    else {
                         die("Error getting current formation name: ");
                     }
                 }

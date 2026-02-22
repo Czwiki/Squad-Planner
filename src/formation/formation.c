@@ -132,7 +132,7 @@ static int sanity_check_and_help(char** args, char** options, int max_args, int 
  * @param position_str Position abbreviation (e.g., "GK", "ST", "CB")
  * @return Position ID (0-23) on success, -1 if not found
  */
-static int parse_position_string(char* position_str) {
+static int parse_position_string(const char* position_str) {
     for (int i = 0; i < 24; i++) {
         if (strcmp(positions[i], position_str) == 0) {
             return i;
@@ -228,7 +228,7 @@ static char* get_position_name(int position_id) {
  * @param name Player name to search for
  * @return Pointer to player struct if found, NULL otherwise
  */
-static player* find_player_by_name(char* name) {
+static player* find_player_by_name(const char* name) {
     if (!name) {
         return NULL;
     }
@@ -338,13 +338,19 @@ int new_player(char** args, char** options) {
         return SP_ERR_WRONG_USAGE;
     }
     char *usage = "newP <name> <age> <overall> <potential> <own> [--help]";
-    char *description = "Creates a new player with the specified attributes and adds them to the global player list. If you wish to add a player with names consisting of multiople words, use underscores instead (e.g., 'Ter_Stegen', 'Christiano_Ronaldo'). All other non-alphabetical characters are treated as valid input. Age must be greater than 0, and ratings must be between 0 and 100.";
+    char *description = "Creates a new player with the specified attributes and adds them to the global player list. If you wish to add a player with names consisting of multiople words, use underscores instead (e.g., 'Ter_Stegen', 'Christiano_Ronaldo'). All other non-alphabetical characters are treated as valid input. Name can only have 40 characters maximum. Age must be greater than 0, and ratings must be between 0 and 100.";
     int sanity_check = sanity_check_and_help(args, options, 5, 1, 1, 0, usage, description);
     if (sanity_check != 0) {
         if (sanity_check == 1) return SP_SUCCESS;
         return sanity_check;
     }
 
+    if (strlen(args[0]) > 40) {
+        return SP_ERR_WRONG_USAGE;  /* name too large */
+    }
+    if (find_player_by_name(args[0]) != NULL) {
+        return SP_ERR_PLAYER_EXISTS;  /* Player with this name already exists */
+    }
     printf("Adding player: %s\n", args[0]);
     player* new_p = malloc(sizeof(player));
     if (!new_p) {
@@ -427,8 +433,8 @@ int preferences(char** args, char** options) {
     }
     position* pos = current_formation->map_of_positions[position_id];
     char *usage = "preference <position> [player1 player2 ...] [-reverse] [--help]";
-    char *description = "Reorder players in a position based on specified preference order. Use -reverse to invert the order.";
-    int sanity = sanity_check_and_help(args, options, pos->size_of_list+1, 2, 1, 0, usage, description);
+    char *description = "Reorder players in a position by listing preferred players first. Unlisted players keep their existing relative order. Use -reverse to invert only the listed preference order.";
+    int sanity = sanity_check_and_help(args, options, pos->size_of_list+1, 1, 1, 0, usage, description);
     if (sanity != 0) {
         if (sanity == 1) return SP_SUCCESS;
         return sanity;
@@ -448,48 +454,75 @@ int preferences(char** args, char** options) {
         return SP_SUCCESS;  /* No reordering needed */
     }
 
-    /* Build preference order array from args */
-    int *preference = malloc(sizeof(int) * pos->size_of_list);
-    if (!preference) {
+    /* Build preferred index list from args (subset is allowed) */
+    int *is_selected = calloc(pos->size_of_list, sizeof(int));
+    if (!is_selected) {
         return SP_ERR_MEMORY;
     }
 
+    // TODO: Can be further optimised
     int i = 1;
-    int p_i = 0;
-    int found = 0;
     while (args[i] != NULL) {
-        found = 0;
+        int found_index = -1;
         for (int j = 0; j < pos->size_of_list; j++) {
             if (strcmp(pos->list_of_players[j]->name, args[i]) == 0) {
-                preference[p_i] = j;
-                p_i++;
-                found = 1;
+                found_index = j;
                 break;
             }
         }
-        if (!found) {
-            free(preference);
+        if (found_index == -1) {
+            free(is_selected);
             return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found in position's list */
         }
+        if (is_selected[found_index]) {
+            free(is_selected);
+            return SP_ERR_WRONG_USAGE;  /* Duplicate player in preference input */
+        }
+        is_selected[found_index] = 1;
         i++;
     }
-    
-    /* Create new list with preferred order */
+
+    /* Create new list with preferred order first, then remaining stable order */
     player** new_list = malloc(sizeof(player*) * pos->size_of_list);
     if (!new_list) {
-        free(preference);
+        free(is_selected);
         return SP_ERR_MEMORY;
     }
-    for (int k = 0; k < pos->size_of_list; k++) {
-        if (backwards) {
-            new_list[k] = pos->list_of_players[preference[pos->size_of_list - 1 - k]];
-        } else {
-            new_list[k] = pos->list_of_players[preference[k]];
+
+    int write_index = 0;
+    if (backwards) {
+        int last = count_tokens(args) - 1;
+        for (int k = last; k >= 1; k--) {
+            for (int j = 0; j < pos->size_of_list; j++) {
+                if (strcmp(pos->list_of_players[j]->name, args[k]) == 0) {
+                    new_list[write_index] = pos->list_of_players[j];
+                    write_index++;
+                    break;
+                }
+            }
+        }
+    } else {
+        for (int k = 1; args[k] != NULL; k++) {
+            for (int j = 0; j < pos->size_of_list; j++) {
+                if (strcmp(pos->list_of_players[j]->name, args[k]) == 0) {
+                    new_list[write_index] = pos->list_of_players[j];
+                    write_index++;
+                    break;
+                }
+            }
         }
     }
+
+    for (int j = 0; j < pos->size_of_list; j++) {
+        if (!is_selected[j]) {
+            new_list[write_index] = pos->list_of_players[j];
+            write_index++;
+        }
+    }
+
     free(pos->list_of_players);
     pos->list_of_players = new_list;
-    free(preference);
+    free(is_selected);
     return SP_SUCCESS;
 }
 
@@ -807,7 +840,7 @@ int list_players_of_position(char** args, char** options) {
  * 
  * Displays the names of all formations in the formation list.
  */
-int list_formations(char** options) {
+int list_formations(char ** args, char** options) {
     /* listing formations does not require a currently opened formation */
     
     char *usage = "listf [--help]";

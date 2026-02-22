@@ -54,7 +54,7 @@ int remove_player_from_position(char** args, char** options);
 int list_players_of_position(char** args, char** options);
 
 /* ID 9: listf - List all formations */
-int list_formations(char** options);
+int list_formations(char ** args, char** options);
 
 /* ID 10: open - Open an existing formation */
 int open_formation(char** args, char** options);

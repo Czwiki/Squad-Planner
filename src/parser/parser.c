@@ -234,6 +234,8 @@ int parse_command(const char* line, int current_context, command* cmd) {
                 if (!temp) {
                     free(buffer);
                     free(cmd->name);
+                    for (int j = 0; j < options_count; j++) free(cmd->options[j]);
+                    free(cmd->options);
                     return SP_ERR_MEMORY;
                 }
                 
@@ -242,6 +244,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                 if (!new_opts) {
                     free(buffer);
                     free(temp);
+                    free(cmd->name);
                     return SP_ERR_MEMORY;
                 }
                 cmd->options = new_opts;
