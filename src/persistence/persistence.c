@@ -24,8 +24,8 @@
  * Integration:
  * - save_to_file() is called from exec.c when the user issues the 'save' command.
  * - load_from_file() is called from exec.c when the user issues the 'load' command.
- * - Serialization traverses the player and formation linked lists directly
- *   via get_player_head() / get_formation_head() from formation.h.
+ * - Serialization obtains a squad_data snapshot via get_squad_data() and
+ *   traverses the player and formation linked lists from there.
  */
 
 #include "persistence.h"
@@ -44,16 +44,17 @@
 /**
  * @brief Serialize all players into a cJSON array.
  *
- * Traverses the global player linked list and creates a JSON array
- * of player objects.
+ * Traverses the player linked list starting at head and creates a
+ * JSON array of player objects.
  *
+ * @param head Head of the player linked list
  * @return cJSON array on success, NULL on memory error
  */
-static cJSON* serialize_players(void) {
+static cJSON* serialize_players(player* head) {
     cJSON* arr = cJSON_CreateArray();
     if (!arr) return NULL;
 
-    for (player* p = get_player_head(); p; p = p->next) {
+    for (player* p = head; p; p = p->next) {
         cJSON* obj = cJSON_CreateObject();
         if (!obj) { cJSON_Delete(arr); return NULL; }
 
@@ -71,17 +72,18 @@ static cJSON* serialize_players(void) {
 /**
  * @brief Serialize all formations into a cJSON array.
  *
- * Traverses the formation linked list and their position slots, building a
- * JSON array of formation objects each containing their positions
- * and assigned players (in preference order).
+ * Traverses the formation linked list starting at head and their
+ * position slots, building a JSON array of formation objects each
+ * containing their positions and assigned players (in preference order).
  *
+ * @param head Head of the formation linked list
  * @return cJSON array on success, NULL on memory error
  */
-static cJSON* serialize_formations(void) {
+static cJSON* serialize_formations(formation* head) {
     cJSON* arr = cJSON_CreateArray();
     if (!arr) return NULL;
 
-    for (formation* f = get_formation_head(); f; f = f->next) {
+    for (formation* f = head; f; f = f->next) {
         cJSON* f_obj = cJSON_CreateObject();
         if (!f_obj) { cJSON_Delete(arr); return NULL; }
 
@@ -122,15 +124,17 @@ static cJSON* serialize_formations(void) {
 int save_to_file(const char* filename) {
     if (!filename) filename = SP_DEFAULT_SAVE_FILE;
 
+    squad_data data = get_squad_data();
+
     /* Build root JSON object */
     cJSON* root = cJSON_CreateObject();
     if (!root) return SP_ERR_MEMORY;
 
-    cJSON* players = serialize_players();
+    cJSON* players = serialize_players(data.player_head);
     if (!players) { cJSON_Delete(root); return SP_ERR_MEMORY; }
     cJSON_AddItemToObject(root, "players", players);
 
-    cJSON* formations = serialize_formations();
+    cJSON* formations = serialize_formations(data.formation_head);
     if (!formations) { cJSON_Delete(root); return SP_ERR_MEMORY; }
     cJSON_AddItemToObject(root, "formations", formations);
 
