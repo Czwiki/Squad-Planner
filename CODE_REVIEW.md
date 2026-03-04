@@ -51,18 +51,8 @@ void test_new_formation(void) {
 
 ### Priorität 1 (Kritisch - Bugs):
 1. ✗ Memory Leaks bei Programmende
-2. ✗ Endlosschleife in `remove_player_from_position()`  
-3. ✓ NULL-Pointer-Check in `execute_command()` – behoben (context==99 Guard + NULL-Check vor Zugriff)
-4. ✗ `remove_position_from_formation()` überspringt erstes Argument
-5. ✗ `list_formations()` - falscher `min_args` Parameter
-
-### Priorität 2 (Features):
-1. ✓ Persistente Speicherung (Save/Load) – implementiert mit cJSON (JSON-Dateien)
-2. ✗ Formation löschen – bereits implementiert (`deletef`)
-3. ✗ Spieler löschen/bearbeiten – `deleteP` implementiert, Bearbeiten fehlt noch
 
 ### Priorität 3 (Verbesserungen):
-1. ✓ Cleanup-Funktionen – `cleanup_all()` existiert und wird bei Exit/Load aufgerufen
 2. ✗ Input-Validierung verbessern
 
 ### 6.2 Aufgabenverteilung Parser ↔ Executor
@@ -89,13 +79,6 @@ void test_new_formation(void) {
 ---
 
 ## 7. Windows-Kompatibilität
-
-### 7.1 Behobene Probleme
-
-| Problem | Lösung | Datei |
-|---------|--------|-------|
-| `<unistd.h>` nicht verfügbar unter MSVC | Conditional Include via `src/compat.h` | `main.c`, `src/compat.h` |
-| `strdup()` nicht in C99/MSVC | Macro `strdup` → `_strdup` für MSVC | `src/compat.h` |
 
 ### 7.2 Verbleibende Windows-Hinweise
 

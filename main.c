@@ -46,7 +46,7 @@ int clean_command (command* cmd) {
 int main(int argc, char const* argv[])
 {
     // command id -1 == exit
-    int context = 0; // 0 == main menu, 1 == in formation planner, 2 == load menu
+    int context = 0; // 0 == main menu, 1 == squad planner, 2 == in formation, 3 == player menu, 4 == load menu
 
     char prompt[70] = "squad-planner - main> ";
     command* cmd = malloc(sizeof(command));
@@ -77,14 +77,14 @@ int main(int argc, char const* argv[])
             line[strlen(line) - 1] = '\0';
         }
         if (strcmp(line, "exit") == 0 ) {
-            fprintf(stderr, "Did you save everything? If not, press 'c' to abort and save before exiting. Otherwise, press 'q' to exit without saving.\n");
+            fprintf(stderr, "Did you save everything? If not, press 'c' and Enter to abort and save before exiting. Otherwise, press 'q' and Enter to exit without saving.\n");
             char confirm;
             while (1) {
-                confirm = getchar();
-                while (getchar() != '\n');  // Clear the input buffer
-                if (confirm == EOF) {
+                int size = scanf("%c", &confirm);
+                if (size == EOF) {
                     die("Error reading input: ");
                 }
+                while (getchar() != '\n');  // Clear the input buffer
                 if (confirm == 'q' || confirm == 'c') {
                     break;
                 }
@@ -131,13 +131,27 @@ int main(int argc, char const* argv[])
                     context = cmd->future_context;
                     break;
                 case 1:
-                    ret_val = snprintf(prompt, 70, "squad-planner - formation> ");
+                    ret_val = snprintf(prompt, 70, "squad-planner - squad> ");
                     if (ret_val < 0 || ret_val >= 70) {
                         die("Error setting prompt: ");
                     }
                     context = cmd->future_context;
                     break;
                 case 2:
+                    ret_val = snprintf(prompt, 70, "squad-planner - formation> ");
+                    if (ret_val < 0 || ret_val >= 70) {
+                        die("Error setting prompt: ");
+                    }
+                    context = cmd->future_context;
+                    break;
+                case 3:
+                    ret_val = snprintf(prompt, 70, "squad-planner - player> ");
+                    if (ret_val < 0 || ret_val >= 70) {
+                        die("Error setting prompt: ");
+                    }
+                    context = cmd->future_context;
+                    break;
+                case 4:
                     ret_val = snprintf(prompt, 70, "squad-planner - saves> ");
                     if (ret_val < 0 || ret_val >= 70) {
                         die("Error setting prompt: ");
@@ -155,7 +169,7 @@ int main(int argc, char const* argv[])
             int ret_val = execute_command(cmd, context);
             printf("%s\n", sp_error_string(ret_val));
             if (ret_val == SP_SUCCESS) {
-                if (context == 1) { // formation menu dynamic prompt
+                if (context == 2) { // formation menu dynamic prompt
                     char in[40] = {0};
                     int result = current_formation_name(in);
                     if (result == SP_SUCCESS) {

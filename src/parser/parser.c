@@ -7,7 +7,7 @@
  * 
  * The parser supports three different contexts (menus):
  * - Main menu (context 0): Entry point with basic navigation commands
- * - Formation menu (context 1): Commands for creating and managing formations
+ * - Squad menu (context 1): Commands for creating and managing squads
  * - Saves menu (context 2): Commands for saving/loading data
  * 
  * Each context has its own set of valid commands. The parser validates
@@ -32,10 +32,25 @@
  * @brief Valid commands in the main menu context.
  * 
  * Index 0: help      - Display help information
- * Index 1: formation - Enter the formation planning menu
+ * Index 1: squad     - Enter the squad planning menu
  * Index 2: load      - Enter the saves/load menu
  */
-static char* command_inputs_main[3] = {"help", "formation", "load"};
+static char* command_inputs_main[3] = {"help", "squad", "load"};
+
+/**
+ * @brief Valid commands in the squad menu context.
+ * 
+ * Index 0: help       - Display squad menu help
+ * Index 1: new        - Create a new squad
+ * Index 2: list       - List all squads
+ * Index 3: open       - Open an existing squad
+ * Index 4: formation   - Enter the formation menu
+ * Index 5: players     - Enter the player menu (not yet implemented)
+ * Index 6: back        - Return to main menu
+ * Index 7: save        - Save current squad data (transitions to saves menu)
+ */
+
+static char* command_inputs_squad[8] = {"help", "new", "list", "open", "formation", "players", "back", "save"};
 
 /**
  * @brief Valid commands in the formation menu context.
@@ -124,11 +139,19 @@ int parse_command(const char* line, int current_context, command* cmd) {
             command_inputs = command_inputs_main;
             length = 3;
             break;
-        case 1:  /* Formation menu context */
+        case 1:  /* Squad menu context */
+            command_inputs = command_inputs_squad;
+            length = 8;
+            break;
+        case 2:  /* Formation menu context */
             command_inputs = command_inputs_formation;
             length = 17;
             break;
-        case 2:  /* Saves menu context */
+        case 3:  /* Player menu context - currently no commands, but set up for future expansion */
+            command_inputs = NULL;  /* No valid commands in player menu yet */
+            length = 0;
+            break;
+        case 4:  /* Saves menu context */
             command_inputs = command_inputs_saves;
             length = 4;
             break;
@@ -159,8 +182,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
         
         if (argv0 == 0) {
             /*
-             * Processing the command name (first token).
-             * Command names cannot start with '-' (that's an option).
+             * Processing the command name
              */
             if (token[0] == '-') {
                 free(buffer);
@@ -180,19 +202,34 @@ int parse_command(const char* line, int current_context, command* cmd) {
                     switch (current_context) {
                     case 0:  /* Main menu */
                         if (i == 1) {
-                            new_context = 1;  /* 'formation' -> enter formation menu */
+                            new_context = 1;  /* 'squad' -> enter squad menu */
                         }
-                        /* Note: 'load' (i==2) no longer changes context - it loads directly */
                         else if (i == 2) {
-                            new_context = 2;  /* 'load' -> enter saves/load menu */
+                            new_context = 4;  /* 'load' -> enter saves/load menu */
                         }
                         break;
-                    case 1:  /* Formation menu */
+                    case 1:  /* Squad menu */
+                        if (i == 4) {
+                            new_context = 2;  /* 'formation' -> enter formation menu */
+                        }
+                        else if (i == 5) {
+                            new_context = 3;  /* 'players' -> enter player menu */
+                        }
+                        else if (i == 6) {
+                            new_context = 0;  /* 'back' -> return to main menu */
+                        }
+                        else if (i == 7) {
+                            new_context = 4;  /* 'save' -> enter saves menu */
+                        }
+                        break;
+                    case 2:  /* Formation menu */
                         if (i == 16) {
                             new_context = 0;  /* 'back' -> return to main menu */
                         }
                         break;
-                    case 2:  /* Saves menu */
+                    case 3:  /* Player menu - currently no commands, but set up for future expansion */
+                        break;
+                    case 4:  /* Saves menu */
                         if (i == 3) {
                             new_context = 0;  /* 'back' -> return to main menu */
                         }

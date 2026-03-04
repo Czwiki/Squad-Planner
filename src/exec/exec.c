@@ -47,6 +47,18 @@ int exec_main_command(int cmd_id) {
     return ret_val;
 }
 
+int exec_squad_command(int cmd_id) {
+    int ret_val = 0;
+    switch (cmd_id) {
+    case 0:  /* help */
+        ret_val = print_help_page_squad();
+        break;
+    default:
+        break;
+    }
+    return ret_val;
+}
+
 /**
  * @brief Execute a command in the formation menu context.
  * 
@@ -175,10 +187,15 @@ int execute_command(command* cmd, int context) {
     case 0:  /* Main menu */
         ret_val = exec_main_command(cmd->id);
         break;
-    case 1:  /* Formation menu */
+    case 1:
+        ret_val = exec_squad_command(cmd->id);
+        break;
+    case 2:  /* Formation menu */
         ret_val = exec_formation_command(cmd->id, cmd->options, cmd->args);
         break;
-    case 2:  /* Saves menu */
+    case 3:
+        break;
+    case 4:  /* Saves menu */
         ret_val = exec_load_command(cmd->id, cmd->options, cmd->args);
         break; 
     default:

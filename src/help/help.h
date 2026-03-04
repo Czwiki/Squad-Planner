@@ -12,6 +12,8 @@
  */
 int print_help_page_main(void);
 
+int print_help_page_squad(void);
+
 /**
  * @brief Display the formation menu help page.
  * @return 0 on success, -1 on error
