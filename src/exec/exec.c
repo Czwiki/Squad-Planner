@@ -24,6 +24,57 @@
 #include "../persistence/persistence.h"
 #include "../error/error.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * @brief Count the number of elements in a NULL-terminated string array.
+ * 
+ * @param args NULL-terminated array of strings
+ * @return Number of elements (not including the NULL terminator)
+ */
+static int count_tokens(char** args) {
+    int i = 0;
+    if (!args) return 0;
+    while (args[i]) i++;
+    return i; 
+}
+
+/**
+ * @brief Validate input and optionally display help information.
+ * 
+ * This utility function performs common validation for command handlers:
+ * 1. Checks for --help option and displays usage if present
+ * 2. Validates that option/argument counts don't exceed limits
+ * 
+ * @param options Array of option strings (may be NULL)
+ * @param args Array of argument strings (may be NULL)
+ * @param expected_args Maximum number of arguments allowed
+ * @param expected_options Maximum number of options allowed
+ * @param usage Usage string to display for help
+ * @param description Description string to display for help
+ * 
+ * @return 0 if validation passes
+ * @return 1 if help was displayed (caller should return success)
+ * @return -1 if both args and options are NULL
+ * @return -2 if too many options or arguments provided
+ */
+static int sanity_check_and_help(char** args, char** options, int max_args, int min_args, int max_options, int min_options, char* usage, char* description) {
+    int args_count = count_tokens(args);
+    int options_count = count_tokens(options);
+    if (options_count == 1 && options && options[0] && strcmp(options[0], "--help") == 0) {
+        printf("Usage: %s\n%s\n", usage, description);
+        if (fflush(stdout) != 0) {
+            perror("Error flushing stdout: ");
+            return SP_ERR_INTERNAL;
+        }
+        return 1;  /* Help page printed */
+    }
+    if (args_count > max_args || options_count > max_options || args_count < min_args || options_count < min_options) {
+        return SP_ERR_WRONG_USAGE;  /* Too many options or arguments */
+    }
+    return 0;  /* Valid input */
+}
 
 /**
  * @brief Execute a command in the main menu context.
@@ -35,7 +86,7 @@
  * 
  * @param cmd_id Command identifier (index in command list)
  */
-int exec_main_command(int cmd_id) {
+static int exec_main_command(int cmd_id) {
     int ret_val = 0;
     switch (cmd_id) {
     case 0:  /* help */
@@ -47,7 +98,7 @@ int exec_main_command(int cmd_id) {
     return ret_val;
 }
 
-int exec_squad_command(int cmd_id) {
+static int exec_squad_command(int cmd_id) {
     int ret_val = 0;
     switch (cmd_id) {
     case 0:  /* help */
@@ -69,52 +120,239 @@ int exec_squad_command(int cmd_id) {
  * @param options Array of option strings
  * @param args Array of argument strings
  */
-int exec_formation_command(int cmd_id, char** options, char** args) {
+static int exec_formation_command(int cmd_id, char** options, char** args) {
     int ret_val = 0;
+    char *usage = NULL;
+    char *description = NULL;
+    int sanity_check = 0;
     switch (cmd_id) {
     case 0:   /* help */
         ret_val = print_help_page_formation();
         break;
     case 1:   /* new */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "new <formation_name>[max. 39 characters] [--help]";
+        description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation. If you wish to use a name consisting of multiple words, use underscores instead of spaces(e.g., '4_3_3', '4_2_3_1'). The new formation becomes the current formation for editing.";
+        sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val =  sanity_check;  /* Error */
+            break;
+        }
         ret_val = new_formation(args, options);
         break;
     case 2:   /* newP */
+        if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "newP <name> <age> <overall> <potential> <own> [--help]";
+        description = "Creates a new player with the specified attributes and adds them to the global player list. If you wish to add a player with names consisting of multiople words, use underscores instead (e.g., 'Ter_Stegen', 'Christiano_Ronaldo'). All other non-alphabetical characters are treated as valid input. Name can only have 40 characters maximum. Age must be greater than 0, and ratings must be between 0 and 100.";
+        sanity_check = sanity_check_and_help(args, options, 5, 1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
+        if (strlen(args[0]) > 40) {
+            ret_val = SP_ERR_WRONG_USAGE;  /* name too large */
+            break;
+        }
         ret_val = new_player(args, options);
         break;
     case 3:   /* preference */
+        if (!args && !options) { 
+            ret_val =  SP_ERR_WRONG_USAGE;
+            break;
+        }
+        if (!args || !args[0]) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "preference <position> [player1 player2 ...] [-reverse] [--help]";
+        description = "Reorder players in a position by listing preferred players first. Unlisted players keep their existing relative order. Use -reverse to invert only the listed preference order.";
+        int arg_num = get_pos_size_of_list(args[0]);  /* position name + all players in the position */
+        if (arg_num < 0) {
+            ret_val = arg_num;  // errors from formation.c helper function
+            break;
+        }
+        sanity_check = sanity_check_and_help(args, options, 1, arg_num+1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = preferences(args, options);
         break;
     case 4:   /* add */
+        if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "add <position_names>[1-11] [--help]";
+        description = "Adds the specified positions to the current formation. The formation must already exist.";
+        sanity_check = sanity_check_and_help(args, options, 11, 1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = add_position_to_formation(args, options);
         break;
     case 5:   /* addP */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "addP <position_name> <player_names>[1-10] [--help]";
+        description = "Adds the specified players to the candidate list for the specified position in the current formation. The position must already be assigned in the formation, and the player must exist in the global player list.";
+        sanity_check = sanity_check_and_help(args, options, 11, 2, 1, 0, usage, description);
+
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = add_player_to_position(args, options);
         break;
     case 6:   /* remove */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE; // one must be present
+            break;
+        }
+        usage = "remove <position_name>[1-5] [--help]";
+        description = "Removes the specified position from the current formation. Position must not have players assigned.";
+        sanity_check = sanity_check_and_help(args, options, 5, 1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = remove_position_from_formation(args, options);
         break;
     case 7:   /* removeP */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "removeP <position_name> <player_names>[1-10] [-all --help]";
+        description = "Removes the specified players from the candidate list of the specified position. With -all option, all players from the position are removed. The position must exist in the current formation.";
+        sanity_check = sanity_check_and_help(args, options, 11, 0, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = remove_player_from_position(args, options);
         break;
     case 8:   /* list */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+
+        usage = "list <position_name> [--help]";
+        description = "List all players assigned to the specified position in the current formation.";
+        sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = list_players_of_position(args, options);
         break;
     case 9:   /* listf */
-        ret_val = list_formations(args, options);
+        if (args && args[0] != NULL) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "listf [--help]";
+        description = "Displays the names of all formations in the formation list.";
+        sanity_check = sanity_check_and_help(NULL, options, 0, 0, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
+        ret_val = list_formations(options);
         break;
     case 10:  /* open */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;  /* No arguments or options provided */
+            break;
+        }
+        usage = "open <formation_name> [--help]";
+        description = "Opens the specified formation for editing. The formation must already exist.";
+        sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = open_formation(args, options);
         break;
     case 11:  /* show */
+        if (args && args[0] != NULL) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "show [--help]";
+        description = "Display the current formation in a tactical view.";
+        sanity_check = sanity_check_and_help(NULL, options, 0, 0, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = show(options);
         break;
     case 12:  /* deletef */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "deletef <formation_name> [--help]";
+        description = "Removes the specified formation from the formation list. The formation must already exist.";
+        sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = delete_formation(args, options);
         break;
     case 13: /* deleteP */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "deleteP <player_name> [--help]";
+        description = "Removes the specified player from the global player list and all positions they are assigned to. The player must already exist.";
+        sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = delete_player(args, options);
         break;
     case 14:  /* editP */
+        if (!args && !options) {
+            ret_val = SP_ERR_WRONG_USAGE;
+            break;
+        }
+        usage = "editP <player_name> <attribute> <new_value> [--help]";
+        description = "Edits the specified attribute of a player. Attributes can be 'age', 'overall', 'potential', or 'own'. The player must already exist.";
+        sanity_check = sanity_check_and_help(args, options, 3, 3, 1, 0, usage, description);
+        if (sanity_check != 0) {
+            if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            else ret_val = sanity_check;  /* Error */
+            break;
+        }
         ret_val = edit_player(args, options);
         break;
     case 15:  /* save – persist all data to JSON file */
@@ -139,7 +377,7 @@ int exec_formation_command(int cmd_id, char** options, char** args) {
  * @param options Array of option strings (may be NULL)
  * @param args Array of argument strings (optional filename)
  */
-int exec_load_command(int cmd_id, char** options, char** args) {
+static int exec_load_command(int cmd_id, char** options, char** args) {
     int ret_val = 0;
     switch (cmd_id) {
     case 0:  /* help */
