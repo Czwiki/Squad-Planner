@@ -11,15 +11,9 @@
  * Index 7: save        - Save current squad data (transitions to saves menu)
  */
 
+#include "squad.h"
 #include "../formation/formation.h"
 #include "../formation/player.h"
-
-struct Squad {
-    char* name;
-    formation** formations; // list head
-    player** players; // list head
-    Squad* next; // next squad in the linked list
-} typedef Squad; 
 
 int new_squad(char** args, char** options) {
     return 0;
@@ -36,5 +30,3 @@ int open_squad(char** args, char** options) {
 int save_squad(char** args, char** options) {
     return 0;
 }
-
-

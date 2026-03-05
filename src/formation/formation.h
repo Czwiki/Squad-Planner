@@ -11,6 +11,7 @@
 #define FORMATION_H
 
 #include "position.h"
+#include "../squad/squad.h"
 
 /**
  * @brief Represents a squad formation with assigned positions.
@@ -80,6 +81,15 @@ int get_pos_size_of_list(char* arg);
 /* ========================================================================== */
 /* Persistence accessor functions                                             */
 /* ========================================================================== */
+
+/**
+ * @brief Get a snapshot of all squad data (players and formations).
+ *
+ * Returns a Squad struct whose fields point to the current heads
+ * of the global player and formation linked lists.
+ * @return Squad with players and formations set.
+ */
+Squad get_squad(void);
 
 /**
  * @brief Get the head of the global player linked list.

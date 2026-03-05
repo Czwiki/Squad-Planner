@@ -991,6 +991,15 @@ void cleanup_all(void) {
  * so no opaque wrappers are needed.
  */
 
+Squad get_squad(void) {
+    Squad data;
+    data.name       = NULL;
+    data.players    = player_head;
+    data.formations = formation_head;
+    data.next       = NULL;
+    return data;
+}
+
 player* get_player_head(void) {
     return player_head;
 }
