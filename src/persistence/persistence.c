@@ -24,7 +24,7 @@
  * Integration:
  * - save_to_file() is called from exec.c when the user issues the 'save' command.
  * - load_from_file() is called from exec.c when the user issues the 'load' command.
- * - Serialization obtains a squad_data snapshot via get_squad_data() and
+ * - Serialization obtains a Squad snapshot via get_squad() and
  *   traverses the player and formation linked lists from there.
  */
 
@@ -124,17 +124,17 @@ static cJSON* serialize_formations(formation* head) {
 int save_to_file(const char* filename) {
     if (!filename) filename = SP_DEFAULT_SAVE_FILE;
 
-    squad_data data = get_squad_data();
+    Squad data = get_squad();
 
     /* Build root JSON object */
     cJSON* root = cJSON_CreateObject();
     if (!root) return SP_ERR_MEMORY;
 
-    cJSON* players = serialize_players(data.player_head);
+    cJSON* players = serialize_players(data.players);
     if (!players) { cJSON_Delete(root); return SP_ERR_MEMORY; }
     cJSON_AddItemToObject(root, "players", players);
 
-    cJSON* formations = serialize_formations(data.formation_head);
+    cJSON* formations = serialize_formations(data.formations);
     if (!formations) { cJSON_Delete(root); return SP_ERR_MEMORY; }
     cJSON_AddItemToObject(root, "formations", formations);
 
