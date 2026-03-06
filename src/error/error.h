@@ -27,6 +27,9 @@ const char* sp_error_string(int error_code);
 #define SP_ERR_PLAYER_ALREADY_ASSIGNED    -24  /* Player already assigned to a position */
 #define SP_ERR_LIMIT        -25  /* Limit exceeded (e.g., 11 positions) */
 #define SP_ERR_NO_FORMATION    -26  /* No formation currently open */
+#define SP_ERR_NO_SQUAD        -27  /* No squad currently open */
+#define SP_ERR_SQUAD_EXISTS    -28  /* Squad already exists */
+#define SP_ERR_SQUAD_NOT_FOUND    -29  /* Squad not found */
 
 // TODO
 /* File I/O errors (-30 to -39) */

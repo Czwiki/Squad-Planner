@@ -200,42 +200,42 @@ int parse_command(const char* line, int current_context, command* cmd) {
                      * Some commands change the application context/menu.
                      */
                     switch (current_context) {
-                    case 0:  /* Main menu */
-                        if (i == 1) {
-                            new_context = 1;  /* 'squad' -> enter squad menu */
-                        }
-                        else if (i == 2) {
-                            new_context = 4;  /* 'load' -> enter saves/load menu */
-                        }
-                        break;
-                    case 1:  /* Squad menu */
-                        if (i == 4) {
-                            new_context = 2;  /* 'formation' -> enter formation menu */
-                        }
-                        else if (i == 5) {
-                            new_context = 3;  /* 'players' -> enter player menu */
-                        }
-                        else if (i == 6) {
-                            new_context = 0;  /* 'back' -> return to main menu */
-                        }
-                        else if (i == 7) {
-                            new_context = 4;  /* 'save' -> enter saves menu */
-                        }
-                        break;
-                    case 2:  /* Formation menu */
-                        if (i == 16) {
-                            new_context = 0;  /* 'back' -> return to main menu */
-                        }
-                        break;
-                    case 3:  /* Player menu - currently no commands, but set up for future expansion */
-                        break;
-                    case 4:  /* Saves menu */
-                        if (i == 3) {
-                            new_context = 0;  /* 'back' -> return to main menu */
-                        }
-                        break;
-                    default:
-                        break;
+                        case 0:  /* Main menu */
+                            if (i == 1) {
+                                new_context = 1;  /* 'squad' -> enter squad menu */
+                            }
+                            else if (i == 2) {
+                                new_context = 4;  /* 'load' -> enter saves/load menu */
+                            }
+                            break;
+                        case 1:  /* Squad menu */
+                            //if (i == 4) {
+                            //    new_context = 2;  /* 'formation' -> enter formation menu */
+                            //}
+                            if (i == 5) {
+                                new_context = 3;  /* 'players' -> enter player menu */
+                            }
+                            else if (i == 6) {
+                                new_context = 0;  /* 'back' -> return to main menu */
+                            }
+                            else if (i == 7) {
+                                new_context = 4;  /* 'save' -> enter saves menu */
+                            }
+                            break;
+                        case 2:  /* Formation menu */
+                            if (i == 16) {
+                                new_context = 1;  /* 'back' -> return to squad menu */
+                            }
+                            break;
+                        case 3:  /* Player menu - currently no commands, but set up for future expansion */
+                            break;
+                        case 4:  /* Saves menu */
+                            if (i == 3) {
+                                new_context = 0;  /* 'back' -> return to main menu */
+                            }
+                            break;
+                        default:
+                            break;
                     }
                     found = 1;
                     break;
@@ -245,6 +245,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
             /* Command not found in valid commands for this context */
             if (!found) {
                 free(buffer);
+                cmd->future_context = current_context;  /* No context change */
                 return SP_ERR_INVALID_CMD;
             }
             
@@ -254,7 +255,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                 free(buffer);
                 return SP_ERR_MEMORY;
             }
-            argv0++;  /* Mark that we've processed the command name */
+            argv0++;  /* Mark processing of command name */
         }
         else {
             if (current_context == 0) {

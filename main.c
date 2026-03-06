@@ -119,7 +119,7 @@ int main(int argc, char const* argv[])
             default: // just for the top 4 cases to change context
                 break;
         }
-
+        
         if (cmd->future_context != context) {
             int ret_val = 0;
             switch (cmd->future_context) {
@@ -169,6 +169,32 @@ int main(int argc, char const* argv[])
             int ret_val = execute_command(cmd, context);
             printf("%s\n", sp_error_string(ret_val));
             if (ret_val == SP_SUCCESS) {
+                if (context == 1) {
+                    // further checks required to allow context switch, therefore here and not in parser
+                    if (cmd->id == 4) { // entering formation menu from squad menu
+                        context = 2;
+                    }
+                    else if (cmd->id == 5) { // entering player menu from squad menu
+                        context = 3;
+                    }
+                    char in[40] = {0};
+                    int result = current_squad_name(in);
+                    if (result == SP_SUCCESS) {
+                        ret_val = snprintf(prompt, 70, "squad-planner - '%s' squad> ", in);
+                        if (ret_val < 0 || ret_val >= 70) {
+                            die("Error setting prompt: ");
+                        }
+                    } 
+                    else if (result == SP_ERR_NO_SQUAD) {
+                        ret_val = snprintf(prompt, 70, "squad-planner - squad> ");
+                        if (ret_val < 0 || ret_val >= 70) {
+                            die("Error setting prompt: ");
+                        }
+                    }
+                    else {
+                        die("Error getting current squad name: ");
+                    }
+                }
                 if (context == 2) { // formation menu dynamic prompt
                     char in[40] = {0};
                     int result = current_formation_name(in);

@@ -20,6 +20,9 @@ const char* sp_error_string(int error_code) {
         case SP_ERR_PLAYER_ALREADY_ASSIGNED: return "Player already assigned to a position";
         case SP_ERR_LIMIT: return "Limit exceeded";
         case SP_ERR_NO_FORMATION: return "No formation currently open";
+        case SP_ERR_NO_SQUAD: return "No squad currently open";
+        case SP_ERR_SQUAD_EXISTS: return "Squad already exists";
+        case SP_ERR_SQUAD_NOT_FOUND: return "Squad not found";
 
         case SP_ERR_FILE_OPEN:  return "File open error";
         case SP_ERR_FILE_READ:  return "File read error";

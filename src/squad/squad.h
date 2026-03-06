@@ -27,4 +27,12 @@ typedef struct Squad {
     struct Squad* next;              /**< Next squad in the linked list */
 } Squad;
 
+int new_squad(char** args, char** options);
+int list_squads(void);
+int open_squad(char** args, char** options);
+int to_formation(void);
+int save_squad(char** args, char** options);
+
+int get_current_squad_name(char* dest);
+
 #endif /* SQUAD_H */

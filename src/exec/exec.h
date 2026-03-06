@@ -24,5 +24,6 @@
  */
 int execute_command(command* cmd, int context);
 int current_formation_name(char* dest);
+int current_squad_name(char* dest);
 
 #endif /* EXEC_H */

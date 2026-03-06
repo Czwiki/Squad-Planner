@@ -7,7 +7,7 @@ CFLAGS = -pedantic -Wall -Werror
 # - MinGW provides gcc and rm via MSYS2, so this Makefile works there as-is.
 # - The src/compat.h header handles strdup/_strdup and unistd.h differences.
 
-OBJS = main.o parser.o exec.o help.o formation.o error.o persistence.o cJSON.o
+OBJS = main.o parser.o exec.o help.o formation.o error.o persistence.o cJSON.o squad.o
 
 main_run: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o main -lm
@@ -42,6 +42,9 @@ persistence.o: src/persistence/persistence.c cJSON.o
 
 cJSON.o: lib/cJSON/cJSON.c
 	$(CC) -pedantic -Wall -c lib/cJSON/cJSON.c -o cJSON.o
+
+squad.o: src/squad/squad.c
+	$(CC) $(CFLAGS) -c src/squad/squad.c -o squad.o
 
 clean:
 	rm -f $(OBJS)
