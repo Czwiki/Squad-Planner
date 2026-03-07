@@ -35,4 +35,10 @@ int save_squad(char** args, char** options);
 
 int get_current_squad_name(char* dest);
 
+/* Set the formations head pointer for the currently active squad.
+ * This is the public setter used by other modules (e.g., formation.c)
+ * to update the squad's stored formation list.
+ */
+int set_current_squad_formations(struct formation* head);
+
 #endif /* SQUAD_H */

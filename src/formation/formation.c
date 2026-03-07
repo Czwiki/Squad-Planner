@@ -39,6 +39,7 @@
 
 #include "formation.h"
 #include "position.h"
+#include "../squad/squad.h"
 #include "../error/error.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -217,6 +218,25 @@ static player* find_player_by_name(const char* name) {
     return NULL;  /* Player not found */
 }
 
+/* Forward declaration for internal updater implemented below */
+static int updating_formation_head(formation* formation_head);
+
+int setting_formation_head(formation* head) {
+    formation_head = head;
+    /* Inform the squad module about the changed formation head */
+    updating_formation_head(head);
+    return SP_SUCCESS;
+}
+
+/* Internal helper: when formation module needs to inform the squad
+ * module about a changed formation head, call the public setter.
+ * This function is intentionally static so it's only visible inside
+ * this translation unit.
+ */
+static int updating_formation_head(formation* formation_head) {
+    return set_current_squad_formations(formation_head);
+}
+
 /* ========================================================================== */
 /* Command Functions                                                          */
 /* ========================================================================== */
@@ -283,7 +303,8 @@ int new_formation(char** args, char** options) {
     /* Initialize all positions to empty */
     for (int i = 0; i < 24; i++) {
         current_formation->map_of_positions[i] = NULL;
-    }  
+    }
+    updating_formation_head(formation_head);  
     return SP_SUCCESS;
 }
 
@@ -755,6 +776,7 @@ int open_formation(char** args, char** options) {
         previous = current;
         current = current->next;
     }
+    updating_formation_head(formation_head);  /* Inform squad module of current formation change */
     return SP_ERR_NO_FORMATION;  /* Formation not found */
 }
 
@@ -854,6 +876,7 @@ int delete_formation(char** args, char** options) {
         previous = current;
         current = current->next;
     }
+    updating_formation_head(formation_head);  /* Inform squad module of current formation change */
     return SP_SUCCESS;
 }
 

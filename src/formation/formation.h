@@ -144,5 +144,6 @@ int add_player_to_position_direct(const char* position_name,
                                   const char* player_name);
 
 int setting_no_current_formation(void);
+int setting_formation_head(formation* head);
 
 #endif /* FORMATION_H */

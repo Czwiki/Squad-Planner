@@ -55,29 +55,6 @@ void test_new_formation(void) {
 ### Priorität 3 (Verbesserungen):
 2. ✗ Input-Validierung verbessern
 
-### 6.2 Aufgabenverteilung Parser ↔ Executor
-
-**Aktuelle Verteilung:**
-- **Parser**: Befehlserkennung, Kontextwechsel-Bestimmung, Token-Extraktion
-- **Executor**: Befehlsdispatch, Aufruf der Implementierungsfunktionen
-- **Formation-Modul**: Validierung von Argumenten (Sanity-Checks, Wertebereichsprüfung)
-
-**Empfehlungen für sauberere Trennung:**
-
-1. **Argumentanzahl-Validierung**: Die Prüfung der Argumentanzahl (`sanity_check_and_help`)
-   erfolgt aktuell in jedem Befehlshandler in `formation.c`. Diese Prüfung könnte stattdessen
-   im Executor (`exec.c`) zentral erfolgen, da die erwartete Argumentanzahl pro Befehl bekannt
-   ist. Dies würde die formation.c-Funktionen vereinfachen.
-
-2. **`--help`-Option**: Die Erkennung von `--help` erfolgt in jedem Befehlshandler über
-   `sanity_check_and_help()`. Dies könnte im Executor abgefangen werden, bevor der Handler
-   aufgerufen wird, da `--help` für alle Befehle gleich funktioniert.
-
-4. **`!args && !options` Check**: Jeder Befehlshandler prüft `!args && !options` am Anfang.
-   Dies könnte zentral im Executor erfolgen – für Befehle die mindestens ein Argument benötigen.
-
----
-
 ## 7. Windows-Kompatibilität
 
 ### 7.2 Verbleibende Windows-Hinweise

@@ -97,12 +97,17 @@ int to_formation(void) {
     if (!current_squad) {
         return SP_ERR_NO_SQUAD;
     }
+    setting_formation_head(current_squad->formations);
     return SP_SUCCESS;
 }
 
-int save_squad(char** args, char** options) {
-    return SP_SUCCESS;
-}
+//int save_squad(char** args, char** options) {
+//    if (!current_squad) {
+//        return SP_ERR_NO_SQUAD;
+//    }
+//    setting_formation_head(current_squad->formations);  /* Ensure squad's formation head is up to date before saving */
+//    return SP_SUCCESS;
+//}
 
 static int clean_name_string(char* name) {
     if (!name) {
@@ -127,5 +132,17 @@ int get_current_squad_name(char *dest) {
     clean_name_string(cleaned_name);
     strncpy(dest, cleaned_name, 40);  // copy up to 39 characters + null terminator
     dest[39] = '\0';  // ensure null termination
+    return SP_SUCCESS;
+}
+
+/* Public setter used by other modules to update the current squad's
+ * formation head pointer. This replaces the previous internal
+ * `updating_formation_head` implementation.
+ */
+int set_current_squad_formations(formation* formation_head) {
+    if (!current_squad) {
+        return SP_ERR_NO_SQUAD;
+    }
+    current_squad->formations = formation_head;
     return SP_SUCCESS;
 }

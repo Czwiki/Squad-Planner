@@ -14,7 +14,7 @@
 #define PERSISTENCE_H
 
 /** @brief Default filename for save data */
-#define SP_DEFAULT_SAVE_FILE "squad_planner_data.json"
+#define SP_DEFAULT_SAVE_FILE "squad_planner_data"
 
 /**
  * @brief Save all application data (players, formations) to a JSON file.

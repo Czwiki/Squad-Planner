@@ -153,17 +153,17 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             }
             ret_val = to_formation();
             break;
-        case 7: /* save */
-            usage = "save [--help]";
-            description = "Saves the current squad data. This command transitions to the saves menu where you can choose to save to a file or return to the squad menu.";
-            sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
-            if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
-                break;
-            }
-            ret_val = save_squad(args, options);
-            break;
+        //case 7: /* save */
+        //    usage = "save [--help]";
+        //    description = "Saves the current squad data. This command transitions to the saves menu where you can choose to save to a file or return to the squad menu.";
+        //    sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
+        //    if (sanity_check != 0) {
+        //        if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+        //        else ret_val = sanity_check;  /* Error */
+        //        break;
+        //    }
+        //    ret_val = save_squad(args, options);
+        //    break;
         default:
             break;
     }
@@ -415,9 +415,9 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = edit_player(args, options);
             break;
-        case 15:  /* save – persist all data to JSON file */
-            ret_val = save_to_file(args ? args[0] : NULL);
-            break;
+        //case 15:  /* save – persist all data to JSON file */
+        //    ret_val = save_to_file(args ? args[0] : NULL);
+        //    break;
         default:
             break;
     }
