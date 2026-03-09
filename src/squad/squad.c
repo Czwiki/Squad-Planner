@@ -60,7 +60,7 @@ int new_squad(char** args, char** options) {
     new_squad->next = NULL;
     temp->next = new_squad;
     current_squad = new_squad;
-
+    setting_squad(current_squad);  /* Inform player and formation modules of current squad change */
     return SP_SUCCESS;
 }
 
@@ -86,6 +86,7 @@ int open_squad(char** args, char** options) {
     while (temp) {
         if (strcmp(temp->name, args[0]) == 0) {
             current_squad = temp;
+            setting_squad(current_squad);  /* Inform player and formation modules of current squad change */
             return SP_SUCCESS;
         }
         temp = temp->next;
@@ -97,7 +98,7 @@ int to_formation(void) {
     if (!current_squad) {
         return SP_ERR_NO_SQUAD;
     }
-    setting_formation_head(current_squad->formations);
+    //setting_formation_head(current_squad->formations);
     return SP_SUCCESS;
 }
 
@@ -106,7 +107,7 @@ int to_players(void) {
         return SP_ERR_NO_SQUAD;
     }
 //    setting_player_head(current_squad->players);
-//    return SP_SUCCESS;
+    return SP_SUCCESS;
 }
 
 //int save_squad(char** args, char** options) {
@@ -147,10 +148,4 @@ int get_current_squad_name(char *dest) {
  * formation head pointer. This replaces the previous internal
  * `updating_formation_head` implementation.
  */
-int set_current_squad_formations(formation* formation_head) {
-    if (!current_squad) {
-        return SP_ERR_NO_SQUAD;
-    }
-    current_squad->formations = formation_head;
-    return SP_SUCCESS;
-}
+

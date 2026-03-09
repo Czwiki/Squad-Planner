@@ -65,11 +65,7 @@ static char* positions[] = {
     "RS", "ST", "LS"                                 /* Forwards */
 };
 
-/** @brief Head of the global player linked list */
-static player* player_head = NULL;
-
-/** @brief Head of the global formation linked list */
-static formation* formation_head = NULL;
+static Squad* current_squad = NULL;  /**< Head of the squad linked list */
 
 /** @brief Pointer to the currently active formation being edited */
 static formation* current_formation = NULL;
@@ -208,7 +204,7 @@ static player* find_player_by_name(const char* name) {
     if (!name) {
         return NULL;
     }
-    player* current = player_head;
+    player* current = current_squad ? current_squad->players : NULL;  /* Search within current squad's player list */
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
             return current;
@@ -218,23 +214,9 @@ static player* find_player_by_name(const char* name) {
     return NULL;  /* Player not found */
 }
 
-/* Forward declaration for internal updater implemented below */
-static int updating_formation_head(formation* formation_head);
-
-int setting_formation_head(formation* head) {
-    formation_head = head;
-    /* Inform the squad module about the changed formation head */
-    updating_formation_head(head);
+int setting_squad(Squad* squad) {
+    current_squad = squad;
     return SP_SUCCESS;
-}
-
-/* Internal helper: when formation module needs to inform the squad
- * module about a changed formation head, call the public setter.
- * This function is intentionally static so it's only visible inside
- * this translation unit.
- */
-static int updating_formation_head(formation* formation_head) {
-    return set_current_squad_formations(formation_head);
 }
 
 /* ========================================================================== */
@@ -263,23 +245,23 @@ int new_formation(char** args, char** options) {
     }
 
     /* Create the first formation in the list */
-    if (formation_head == NULL) {
-        formation_head = malloc(sizeof(formation));
-        if (!formation_head) {
+    if (current_squad->formations == NULL) {
+        current_squad->formations = malloc(sizeof(formation));
+        if (!current_squad->formations) {
             return SP_ERR_MEMORY;
         }
-        formation_head->name = strdup(args[0]);
-        if (!formation_head->name) {
-            free(formation_head);
-            formation_head = NULL;
+        current_squad->formations->name = strdup(args[0]);
+        if (!current_squad->formations->name) {
+            free(current_squad->formations);
+            current_squad->formations = NULL;
             return SP_ERR_MEMORY;
         }
-        formation_head->next = NULL;
-        current_formation = formation_head;
+        current_squad->formations->next = NULL;
+        current_formation = current_squad->formations;
     } 
     else {
         /* Append to the end of the formation list */
-        formation* current = formation_head;
+        formation* current = current_squad->formations;
         while (current->next != NULL) {
             if (strcmp(current->name, args[0]) == 0) {
                 return SP_ERR_FORMATION_EXISTS;  /* Formation with this name already exists */
@@ -304,7 +286,6 @@ int new_formation(char** args, char** options) {
     for (int i = 0; i < 24; i++) {
         current_formation->map_of_positions[i] = NULL;
     }
-    updating_formation_head(formation_head);  
     return SP_SUCCESS;
 }
 
@@ -360,9 +341,9 @@ int new_player(char** args, char** options) {
     new_p->own_rating = own;
 
     /* Add to end of player list */
-    player* current = player_head;
+    player* current = current_squad ? current_squad->players : NULL;  /* Add to current squad's player list */
     if (!current) {
-        player_head = new_p;
+        current_squad->players = new_p;
     } else {
         while (current->next != NULL) {
             current = current->next;
@@ -491,7 +472,7 @@ int preferences(char** args, char** options) {
  * 
  */
 int add_position_to_formation(char** args, char** options) {
-    if (!formation_head || !current_formation) {
+    if (!current_squad->formations || !current_formation) {
         return SP_ERR_NO_FORMATION;  /* No formations available  or none selected*/
     }
     
@@ -738,7 +719,7 @@ int list_players_of_position(char** args, char** options) {
  */
 int list_formations(char** options) {
     /* listing formations does not require a currently opened formation */
-    formation* current = formation_head;
+    formation* current = current_squad ? current_squad->formations : NULL;  /* Start from the head of the formation list */
     if (!current) {
         printf("No formations available.\n");
         return SP_SUCCESS;
@@ -762,20 +743,18 @@ int list_formations(char** options) {
  * 
  */
 int open_formation(char** args, char** options) {
-    if (!formation_head) {
+    if (!current_squad->formations) {
         return SP_ERR_NO_FORMATION;  /* No formations available */
     }    
-    formation* previous = formation_head;
-    formation* current = previous;
+    formation* current = current_squad->formations;
     while (current != NULL) {
         if (strcmp(current->name, args[0]) == 0) {
             current_formation = current;  /* Found - set as current */
             return SP_SUCCESS;
         }
-        previous = current;
         current = current->next;
     }
-    updating_formation_head(formation_head);  /* Inform squad module of current formation change */
+    //updating_formation_head(current_squad->formations);  /* Inform squad module of current formation change */
     return SP_ERR_NO_FORMATION;  /* Formation not found */
 }
 
@@ -851,21 +830,21 @@ int delete_formation(char** args, char** options) {
     if (!current_formation) {
         return SP_ERR_NO_FORMATION;  /* No formation currently open */
     }
-    formation* current = formation_head;
+    formation* current = current_squad->formations;
     formation* previous = NULL;
     while (current != NULL) {
         if (strcmp(current->name, args[0]) == 0) {
             /* Found the formation to remove */
             if (previous == NULL) {
                 /* head ist still current, therefore next will be the new head */
-                formation_head = current->next;
+                current_squad->formations = current->next;
             } 
             else {
                 previous->next = current->next;
             }
             /* If the removed formation is the current formation, update current_formation */
             if (current_formation == current) {
-                current_formation = formation_head;  /* Set to new head or NULL if list is empty */
+                current_formation = current_squad->formations;  /* Set to new head or NULL if list is empty */
             }
             /* Free the removed formation */
             cleanup_formation(current);
@@ -875,24 +854,24 @@ int delete_formation(char** args, char** options) {
         previous = current;
         current = current->next;
     }
-    updating_formation_head(formation_head);  /* Inform squad module of current formation change */
+    //updating_formation_head(formation_head);  /* Inform squad module of current formation change */
     return SP_SUCCESS;
 }
 
 int delete_player(char** args, char** options) {
-    player* current = player_head;
+    player* current = current_squad ? current_squad->players : NULL;  /* Start from the head of the player list */
     player* previous = NULL;
     while (current != NULL) {
         if (strcmp(current->name, args[0]) == 0) {
             /* Found the player to remove */
             if (previous == NULL) {
                 /* head is still current, therefore next will be the new head */
-                player_head = current->next;
+                current_squad->players = current->next;
             } else {
                 previous->next = current->next;
             }
             /* Remove player from all positions in all formations */
-            formation* f_current = formation_head;
+            formation* f_current = current_squad->formations;
             while (f_current != NULL) {
                 for (int i = 0; i < 24; i++) {
                     if (f_current->map_of_positions[i] != NULL) {
@@ -988,15 +967,15 @@ int edit_player(char** args, char** options) {
  *       or before loading new data from a file (load_from_file).
  */
 void cleanup_all(void) {
-    while (formation_head != NULL) {
-        formation* temp = formation_head;
-        formation_head = formation_head->next;
+    while (current_squad && current_squad->formations != NULL) {
+        formation* temp = current_squad->formations;
+        current_squad->formations = current_squad->formations->next;
         cleanup_formation(temp);
     }
     current_formation = NULL;
-    while (player_head != NULL) {
-        player* temp = player_head;
-        player_head = player_head->next;
+    while (current_squad && current_squad->players != NULL) {
+        player* temp = current_squad->players;
+        current_squad->players = current_squad->players->next;
         cleanup_player(temp);
     }
 }
@@ -1015,18 +994,18 @@ void cleanup_all(void) {
 Squad get_squad(void) {
     Squad data;
     data.name       = NULL;
-    data.players    = player_head;
-    data.formations = formation_head;
+    data.players    = current_squad ? current_squad->players : NULL;
+    data.formations = current_squad ? current_squad->formations : NULL;
     data.next       = NULL;
     return data;
 }
 
 player* get_player_head(void) {
-    return player_head;
+    return current_squad ? current_squad->players : NULL;
 }
 
 formation* get_formation_head(void) {
-    return formation_head;
+    return current_squad ? current_squad->formations : NULL;
 }
 
 /* --- Direct creation helpers for persistence load --- */
@@ -1051,10 +1030,10 @@ int create_player_direct(const char* name, int age,
     new_p->next = NULL;
 
     /* Append to player list */
-    if (!player_head) {
-        player_head = new_p;
+    if (!current_squad || !current_squad->players) {
+        current_squad->players = new_p;
     } else {
-        player* cur = player_head;
+        player* cur = current_squad->players;
         while (cur->next) cur = cur->next;
         cur->next = new_p;
     }
@@ -1065,7 +1044,7 @@ int create_formation_direct(const char* name) {
     if (!name) return SP_ERR_NULL_PTR;
 
     /* Use a temporary args array to reuse new_formation() logic inline */
-    formation* cur = formation_head;
+    formation* cur = current_squad ? current_squad->formations : NULL;
     while (cur) {
         if (strcmp(cur->name, name) == 0) return SP_ERR_FORMATION_EXISTS;
         cur = cur->next;
@@ -1079,10 +1058,10 @@ int create_formation_direct(const char* name) {
     for (int i = 0; i < 24; i++) new_f->map_of_positions[i] = NULL;
 
     /* Append to list */
-    if (!formation_head) {
-        formation_head = new_f;
+    if (!current_squad || !current_squad->formations) {
+        current_squad->formations = new_f;
     } else {
-        formation* tail = formation_head;
+        formation* tail = current_squad->formations;
         while (tail->next) tail = tail->next;
         tail->next = new_f;
     }

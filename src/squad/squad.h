@@ -29,8 +29,6 @@ struct Squad {
 };
 typedef struct Squad Squad;
 
-Squad* squad_head;  /* Global head pointer for the squad linked list */
-
 int new_squad(char** args, char** options);
 int list_squads(void);
 int open_squad(char** args, char** options);

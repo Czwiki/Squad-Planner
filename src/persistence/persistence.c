@@ -125,6 +125,7 @@ int save_to_file(const char* filename) {
     if (!filename) filename = SP_DEFAULT_SAVE_FILE;
 
     Squad data = get_squad();
+    //if (data) return SP_ERR_MEMORY;
 
     /* Build root JSON object */
     cJSON* root = cJSON_CreateObject();

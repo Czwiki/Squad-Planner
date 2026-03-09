@@ -91,6 +91,8 @@ int get_pos_size_of_list(char* arg);
  */
 Squad get_squad(void);
 
+int setting_squad(Squad* squad);
+
 /**
  * @brief Get the head of the global player linked list.
  *
@@ -144,6 +146,6 @@ int add_player_to_position_direct(const char* position_name,
                                   const char* player_name);
 
 int setting_no_current_formation(void);
-int setting_formation_head(formation* head);
 
 #endif /* FORMATION_H */
+
