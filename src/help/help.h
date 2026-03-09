@@ -20,6 +20,8 @@ int print_help_page_squad(void);
  */
 int print_help_page_formation(void);
 
+int print_help_page_player(void);
+
 /**
  * @brief Display the saves menu help page.
  * @return 0 on success, -1 on error

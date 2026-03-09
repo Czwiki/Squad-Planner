@@ -333,14 +333,13 @@ int new_player(char** args, char** options) {
     }
     
     /* Parse player attributes from string arguments */
-    errno = 0;
     char *endptr;
     int age = strtol(args[1], &endptr, 10);
     int overall = strtol(args[2], &endptr, 10);
     int potential = strtol(args[3], &endptr, 10);
     int own = strtol(args[4], &endptr, 10);
 
-    if (errno == ERANGE || endptr == args[1] || endptr == args[2] || endptr == args[3] || endptr == args[4]) {
+    if (endptr == args[1] || endptr == args[2] || endptr == args[3] || endptr == args[4]) {
         // invalid integer conversion for one of the arguments
         free(new_p->name);
         free(new_p);
@@ -940,10 +939,9 @@ int edit_player(char** args, char** options) {
     char* attribute = args[1];
     char* new_value_str = args[2];
     
-    errno = 0;
     char *endptr;
     int new_value = strtol(new_value_str, &endptr, 10);
-    if (errno == ERANGE || endptr == new_value_str) {
+    if (endptr == new_value_str) {
         return SP_ERR_INTERNAL;  /* Conversion error */
     }
 

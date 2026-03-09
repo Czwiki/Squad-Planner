@@ -153,6 +153,17 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             }
             ret_val = to_formation();
             break;
+        case 5: /* players command is currently a placeholder for future expansion */
+            usage = "players [--help]";
+            description = "Enters the player menu for the current squad. This menu is under development and will allow you to manage your player roster in future updates.";
+            sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+                else ret_val = sanity_check;  /* Error */
+                break;
+            }
+            ret_val = to_players();
+            break;
         //case 7: /* save */
         //    usage = "save [--help]";
         //    description = "Saves the current squad data. This command transitions to the saves menu where you can choose to save to a file or return to the squad menu.";
@@ -424,6 +435,18 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
     return ret_val;
 }
 
+static int exec_player_command(int cmd_id, char **args, char **options) {
+    int ret_val = 0;
+    switch (cmd_id) {
+        case 0:  /* help */
+            ret_val = print_help_page_player();
+            break;
+        default:
+            break;
+    }
+    return ret_val;
+}
+
 /**
  * @brief Execute a command in the saves/load menu context.
  * 
@@ -492,6 +515,7 @@ int execute_command(command* cmd, int context) {
             ret_val = exec_formation_command(cmd->id, cmd->args, cmd->options);
             break;
         case 3: /* player menu */
+            ret_val = exec_player_command(cmd->id, cmd->args, cmd->options);
             break;
         case 4:  /* Saves menu */
             ret_val = exec_load_command(cmd->id, cmd->args, cmd->options);

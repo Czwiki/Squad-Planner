@@ -79,6 +79,21 @@ static char* command_inputs_formation[17] = {
 };
 
 /**
+* @brief Valid commands in the player menu context.
+ * 
+ * Index 0: help   - Display player menu help
+ * Index 1: newP   - Create a new player
+ * Index 2: list   - List all players
+ * Index 3: show   - Show details of the current player
+ * Index 4: deleteP- Remove an existing player
+ * Index 5: editP  - Edit an existing player's attributes
+ * Index 6: save   - Save current player data (transitions to saves menu)
+ * Index 7: back   - Return to squad menu
+ */
+
+static char* command_inputs_player[9] = {"help", "newP", "openP", "list", "deleteP", "editP", "save", "back"};
+
+/**
  * @brief Valid commands in the saves menu context.
  * 
  * Index 0: help - Display saves menu help
@@ -148,8 +163,8 @@ int parse_command(const char* line, int current_context, command* cmd) {
             length = 17;
             break;
         case 3:  /* Player menu context - currently no commands, but set up for future expansion */
-            command_inputs = NULL;  /* No valid commands in player menu yet */
-            length = 0;
+            command_inputs = command_inputs_player;
+            length = 9;
             break;
         case 4:  /* Saves menu context */
             command_inputs = command_inputs_saves;

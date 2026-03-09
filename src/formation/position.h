@@ -10,7 +10,7 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-#include "player.h"
+#include "../player/player.h"
 
 /**
  * @brief Represents a position in a formation.

@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include "../error/error.h"
 
 /**
  * @brief Display the main menu help page.
@@ -25,9 +26,9 @@ int print_help_page_main(void) {
     printf("These commands allow you to navigate to different parts of the application. They do not accept arguments or options.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
-        return -1;
+        return SP_ERR_INTERNAL;
     }
-    return 0;
+    return SP_SUCCESS;
 }
 
 int print_help_page_squad(void) {
@@ -45,9 +46,9 @@ int print_help_page_squad(void) {
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
-        return -1;
+        return SP_ERR_INTERNAL;
     }
-    return 0;
+    return SP_SUCCESS;
 }
 
 /**
@@ -79,9 +80,29 @@ int print_help_page_formation(void) {
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
-        return -1;
+        return SP_ERR_INTERNAL;
     }
-    return 0;
+    return SP_SUCCESS;
+}
+
+int print_help_page_player(void) {
+    printf("Player menu Help Page\n");
+    printf("-------------------\n");
+    printf("Available commands in the player menu:\n");
+    printf("1. help - Display this help page\n");
+    printf("2. newP - Create a new player (not yet implemented)\n");
+    printf("3. list - List all players (not yet implemented)\n");
+    printf("4. show - Show details of the current player (not yet implemented)\n");
+    printf("5. deleteP - Remove an existing player (not yet implemented)\n");
+    printf("6. editP - Edit an existing player's attributes (not yet implemented)\n");
+    printf("7. save - Save current player data (transitions to saves menu)\n");
+    printf("8. back - Return to squad menu\n");
+    printf("For help on explicit commands, type '<command> --help'\n");
+    if (fflush(stdout) != 0) {
+        perror("Error flushing stdout: ");
+        return SP_ERR_INTERNAL;
+    }
+    return SP_SUCCESS;
 }
 
 /**
@@ -102,7 +123,7 @@ int print_help_page_saves(void) {
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
-        return -1;
+        return SP_ERR_INTERNAL;
     }
-    return 0;
+    return SP_SUCCESS;
 }

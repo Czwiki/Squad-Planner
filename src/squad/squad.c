@@ -13,7 +13,7 @@
 
 #include "squad.h"
 #include "../formation/formation.h"
-#include "../formation/player.h"
+#include "../player/player.h"
 #include "../error/error.h"
 #include <stdlib.h>
 #include <string.h>
@@ -99,6 +99,14 @@ int to_formation(void) {
     }
     setting_formation_head(current_squad->formations);
     return SP_SUCCESS;
+}
+
+int to_players(void) {
+    if (!current_squad) {
+        return SP_ERR_NO_SQUAD;
+    }
+//    setting_player_head(current_squad->players);
+//    return SP_SUCCESS;
 }
 
 //int save_squad(char** args, char** options) {
