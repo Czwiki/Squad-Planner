@@ -13,6 +13,14 @@
 typedef struct Squad Squad;  /** Forward declaration */
 typedef struct player player;
 
+typedef struct Stats {
+    int goals;
+    int assists;
+    int appearances;
+    int yellow_cards;
+    int red_cards;
+} Stats;
+
 /**
  * @brief Represents a soccer player with ratings.
  * 
@@ -28,6 +36,7 @@ struct player {
     int potential_rating;    /** Potential rating (0-100) */
     int own_rating;          /** User's personal rating (0-100) */
     struct player* next;     /** Next player in the linked list */
+    Stats stats;             /** Player's statistics */
 };
 
 int setting_squad_player(Squad* squad);
