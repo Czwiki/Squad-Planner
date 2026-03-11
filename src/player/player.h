@@ -10,6 +10,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+typedef struct Squad Squad;  /** Forward declaration */
+typedef struct player player;
+
 /**
  * @brief Represents a soccer player with ratings.
  * 
@@ -18,13 +21,15 @@
  * - potential_rating: Maximum possible ability
  * - own_rating: User's personal assessment
  */
-typedef struct player {
-    char* name;              /**< Player's name (unique identifier) */
-    int age;                 /**< Player's age (must be > 0) */
-    int overall_rating;      /**< Current overall rating (0-100) */
-    int potential_rating;    /**< Potential rating (0-100) */
-    int own_rating;          /**< User's personal rating (0-100) */
-    struct player* next;     /**< Next player in the linked list */
-} player;
+struct player {
+    char* name;              /** Player's name (unique identifier) */
+    int age;                 /** Player's age (must be > 0) */
+    int overall_rating;      /** Current overall rating (0-100) */
+    int potential_rating;    /** Potential rating (0-100) */
+    int own_rating;          /** User's personal rating (0-100) */
+    struct player* next;     /** Next player in the linked list */
+};
+
+int setting_squad_player(Squad* squad);
 
 #endif /* PLAYER_H */

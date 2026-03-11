@@ -37,6 +37,8 @@ int new_squad(char** args, char** options) {
         squad_head->formations = NULL;
         squad_head->next = NULL;
         current_squad = squad_head;
+        setting_squad_formation(current_squad);  /* Inform player and formation modules of current squad change */
+        setting_squad_player(current_squad);
         return SP_SUCCESS;
     }
     Squad* temp = squad_head;
@@ -60,7 +62,8 @@ int new_squad(char** args, char** options) {
     new_squad->next = NULL;
     temp->next = new_squad;
     current_squad = new_squad;
-    setting_squad(current_squad);  /* Inform player and formation modules of current squad change */
+    setting_squad_formation(current_squad);  /* Inform player and formation modules of current squad change */
+    setting_squad_player(current_squad);
     return SP_SUCCESS;
 }
 
@@ -86,7 +89,8 @@ int open_squad(char** args, char** options) {
     while (temp) {
         if (strcmp(temp->name, args[0]) == 0) {
             current_squad = temp;
-            setting_squad(current_squad);  /* Inform player and formation modules of current squad change */
+            setting_squad_formation(current_squad);  /* Inform player and formation modules of current squad change */
+            setting_squad_player(current_squad);
             return SP_SUCCESS;
         }
         temp = temp->next;
@@ -142,6 +146,33 @@ int get_current_squad_name(char *dest) {
     strncpy(dest, cleaned_name, 40);  // copy up to 39 characters + null terminator
     dest[39] = '\0';  // ensure null termination
     return SP_SUCCESS;
+}
+
+/* Persistence helper: return the head of the squads list */
+Squad* get_squad_head(void) {
+    return squad_head;
+}
+
+int setting_no_current_squad(void) {
+    current_squad = NULL;
+    setting_squad_formation(NULL);
+    setting_squad_player(NULL);
+    return SP_SUCCESS;
+}
+
+void clear_all_squads(void) {
+    while (squad_head) {
+        current_squad = squad_head; /* make this squad current so cleanup_all frees its players/formations */
+        cleanup_all();
+        /* free squad struct */
+        Squad* tmp = squad_head;
+        squad_head = squad_head->next;
+        if (tmp->name) free(tmp->name);
+        free(tmp);
+    }
+    current_squad = NULL;
+    setting_squad_formation(NULL);
+    setting_squad_player(NULL);
 }
 
 /* Public setter used by other modules to update the current squad's

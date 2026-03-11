@@ -3,6 +3,7 @@ main
 *.o
 
 # Save files
+/saves/*
 *.json
 
 # CodeQL artifacts

@@ -91,7 +91,7 @@ int get_pos_size_of_list(char* arg);
  */
 Squad get_squad(void);
 
-int setting_squad(Squad* squad);
+int setting_squad_formation(Squad* squad);
 
 /**
  * @brief Get the head of the global player linked list.

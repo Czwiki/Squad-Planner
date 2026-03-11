@@ -214,7 +214,7 @@ static player* find_player_by_name(const char* name) {
     return NULL;  /* Player not found */
 }
 
-int setting_squad(Squad* squad) {
+int setting_squad_formation(Squad* squad) {
     current_squad = squad;
     return SP_SUCCESS;
 }
@@ -235,15 +235,19 @@ int setting_squad(Squad* squad) {
  * @return 0 on success, SP_ERR_DUPLICATE if name already exists
  */
 int new_formation(char** args, char** options) {
+    if (!current_squad) {
+        return SP_ERR_NO_SQUAD;  /* No squad currently open */
+    }
+
     /* Check if formation with this name already exists */
     if (open_formation(args, NULL) == 0) {
         return SP_ERR_FORMATION_EXISTS;  /* Formation with this name already exists */
     }
-
+    
     if (strlen(args[0]) > 39) {
         return SP_ERR_WRONG_USAGE;  /* Formation name cannot be empty */
     }
-
+    
     /* Create the first formation in the list */
     if (current_squad->formations == NULL) {
         current_squad->formations = malloc(sizeof(formation));
@@ -258,6 +262,7 @@ int new_formation(char** args, char** options) {
         }
         current_squad->formations->next = NULL;
         current_formation = current_squad->formations;
+        
     } 
     else {
         /* Append to the end of the formation list */
@@ -743,7 +748,7 @@ int list_formations(char** options) {
  * 
  */
 int open_formation(char** args, char** options) {
-    if (!current_squad->formations) {
+    if (!current_squad || !current_squad->formations) {
         return SP_ERR_NO_FORMATION;  /* No formations available */
     }    
     formation* current = current_squad->formations;
@@ -993,7 +998,7 @@ void cleanup_all(void) {
 
 Squad get_squad(void) {
     Squad data;
-    data.name       = NULL;
+    data.name       = current_squad ? current_squad->name : NULL;
     data.players    = current_squad ? current_squad->players : NULL;
     data.formations = current_squad ? current_squad->formations : NULL;
     data.next       = NULL;

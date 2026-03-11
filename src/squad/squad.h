@@ -12,8 +12,9 @@
 #define SQUAD_H
 
 /* Forward declarations – full definitions live in player.h / formation.h */
-struct player;
-struct formation;
+typedef struct player player;
+typedef struct formation formation;
+typedef struct Squad Squad;
 
 /**
  * @brief Top-level container for squad data.
@@ -22,12 +23,11 @@ struct formation;
  * that belong to this squad.
  */
 struct Squad {
-    char* name;                      /**< Squad name */
-    struct player* players;          /**< Head of the player linked list */
-    struct formation* formations;    /**< Head of the formation linked list */
-    struct Squad* next;              /**< Next squad in the linked list */
+    char* name;                      /** Squad name */
+    player* players;          /** Head of the player linked list */
+    formation* formations;    /** Head of the formation linked list */
+    Squad* next;              /** Next squad in the linked list */
 };
-typedef struct Squad Squad;
 
 int new_squad(char** args, char** options);
 int list_squads(void);
@@ -37,6 +37,15 @@ int to_players(void);
 int save_squad(char** args, char** options);
 
 int get_current_squad_name(char* dest);
+
+/* Return the head of the squads linked list for persistence */
+Squad* get_squad_head(void);
+
+/* Clear the current squad selection (used by persistence) */
+int setting_no_current_squad(void);
+
+/* Remove all squads and their contents from memory */
+void clear_all_squads(void);
 
 /* Set the formations head pointer for the currently active squad.
  * This is the public setter used by other modules (e.g., formation.c)
