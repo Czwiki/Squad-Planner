@@ -33,9 +33,6 @@ int get_current_formation_name(char* dest);
 /* ID 1: new - Create a new formation */
 int new_formation(char** args, char** options);
 
-/* ID 2: newP - Create a new player */
-int new_player(char** args, char** options);
-
 /* ID 3: preference - Adjust player preferences in a position */
 int preferences(char** args, char** options);
 
@@ -66,16 +63,9 @@ int show(char** options);
 /* ID 12: deletef - Remove an existing formation */
 int delete_formation(char** args, char** options);
 
-/* ID 13: deleteP - Remove an existing player */
-int delete_player(char** args, char** options);
-
-/* ID 14: editP - Edit an existing player */
-int edit_player(char** args, char** options);
-
-/**/
-
 /* Cleanup function - frees all formations and players */
 void cleanup_all(void);
+void cleanup_formation(formation* current);
 int get_pos_size_of_list(char* arg);
 
 /* ========================================================================== */

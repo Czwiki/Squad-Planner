@@ -146,25 +146,12 @@ int get_current_formation_name(char *dest) {
 }
 
 /**
- * @brief Free all memory associated with players.
- * 
- * Iterates through the global player list and frees all
- * player structures and their name strings.
- */
-static void cleanup_player(player* current) {
-    if (current->name) {
-        free(current->name);
-    }
-    free(current);
-}
-
-/**
  * @brief Free all memory associated with formations.
  * 
  * Iterates through the global formation list and frees all
  * formation structures, their positions, and player lists.
  */
-static void cleanup_formation(formation* current) {
+void cleanup_formation(formation* current) {
     /* Free all positions in this formation */
     for (int i = 0; i < 24; i++) {
         if (current->map_of_positions[i] != NULL) {
@@ -294,70 +281,6 @@ int new_formation(char** args, char** options) {
     return SP_SUCCESS;
 }
 
-/**
- * @brief Create a new player and add to the global player list.
- * 
- * Creates a player with the specified attributes and adds them
- * to the global player linked list.
- * 
- * @param args Array: [0]=name, [1]=age, [2]=overall, [3]=potential, [4]=own_rating
- *             All ratings should be 0-100, age > 0
- */
-int new_player(char** args, char** options) {
-    if (find_player_by_name(args[0]) != NULL) {
-        return SP_ERR_PLAYER_EXISTS;  /* Player with this name already exists */
-    }
-    printf("Adding player: %s\n", args[0]);
-    player* new_p = malloc(sizeof(player));
-    if (!new_p) {
-        return SP_ERR_MEMORY;
-    }
-    new_p->name = strdup(args[0]);
-    if (!new_p->name) {
-        free(new_p);
-        return SP_ERR_MEMORY;
-    }
-    
-    /* Parse player attributes from string arguments */
-    char *endptr;
-    int age = strtol(args[1], &endptr, 10);
-    int overall = strtol(args[2], &endptr, 10);
-    int potential = strtol(args[3], &endptr, 10);
-    int own = strtol(args[4], &endptr, 10);
-
-    if (endptr == args[1] || endptr == args[2] || endptr == args[3] || endptr == args[4]) {
-        // invalid integer conversion for one of the arguments
-        free(new_p->name);
-        free(new_p);
-        return SP_ERR_INTERNAL;  /* Conversion error */
-    }
-    
-    /* Validate attribute ranges */
-    if (age <= 0 || overall < 0 || potential < 0 || own < 0 || 
-        overall > 100 || potential > 100 || own > 100) {
-        free(new_p->name);
-        free(new_p);
-        return SP_ERR_INVALID_RANGE;  /* Invalid values */
-    }
-    
-    new_p->age = age;
-    new_p->overall_rating = overall;
-    new_p->potential_rating = potential;
-    new_p->own_rating = own;
-
-    /* Add to end of player list */
-    player* current = current_squad ? current_squad->players : NULL;  /* Add to current squad's player list */
-    if (!current) {
-        current_squad->players = new_p;
-    } else {
-        while (current->next != NULL) {
-            current = current->next;
-        }
-        current->next = new_p;
-    }
-    new_p->next = NULL;
-    return SP_SUCCESS;
-}
 
 /**
  * @brief Reorder players in a position based on preference order.
@@ -863,127 +786,11 @@ int delete_formation(char** args, char** options) {
     return SP_SUCCESS;
 }
 
-int delete_player(char** args, char** options) {
-    player* current = current_squad ? current_squad->players : NULL;  /* Start from the head of the player list */
-    player* previous = NULL;
-    while (current != NULL) {
-        if (strcmp(current->name, args[0]) == 0) {
-            /* Found the player to remove */
-            if (previous == NULL) {
-                /* head is still current, therefore next will be the new head */
-                current_squad->players = current->next;
-            } else {
-                previous->next = current->next;
-            }
-            /* Remove player from all positions in all formations */
-            formation* f_current = current_squad->formations;
-            while (f_current != NULL) {
-                for (int i = 0; i < 24; i++) {
-                    if (f_current->map_of_positions[i] != NULL) {
-                        position* pos = f_current->map_of_positions[i];
-                        for (int j = 0; j < pos->size_of_list; j++) {
-                            if (strcmp(pos->list_of_players[j]->name, current->name) == 0) {
-                                /* Shift players to remove the player at index j */
-                                for (int k = j; k < pos->size_of_list - 1; k++) {
-                                    pos->list_of_players[k] = pos->list_of_players[k + 1];
-                                }
-                                pos->size_of_list--;
-                                if (pos->size_of_list == 0) {
-                                    free(pos->list_of_players);
-                                    pos->list_of_players = NULL;
-                                } else {
-                                    player** new_list = realloc(pos->list_of_players, sizeof(player*) * pos->size_of_list);
-                                    if (new_list) {
-                                        pos->list_of_players = new_list;
-                                    }
-                                }
-                                break;  /* Player can only be in a position once, so break after finding */
-                            }
-                        }
-                    }
-                }
-                f_current = f_current->next;
-            }
-            /* Free the removed player */
-            cleanup_player(current);
-            break;
-        }
-        // iterative traverse        
-        previous = current;
-        current = current->next;
-    }
-    return SP_SUCCESS;
-}
-
-int edit_player(char** args, char** options) {
-    player* p = find_player_by_name(args[0]);
-    if (!p) {
-        return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found */
-    }
-    char* attribute = args[1];
-    char* new_value_str = args[2];
-    
-    char *endptr;
-    int new_value = strtol(new_value_str, &endptr, 10);
-    if (endptr == new_value_str) {
-        return SP_ERR_INTERNAL;  /* Conversion error */
-    }
-
-    if (strcmp(attribute, "age") == 0) {
-        if (new_value <= 0) {
-            return SP_ERR_INVALID_RANGE;  /* Age must be greater than 0 */
-        }
-        p->age = new_value;
-    } else if (strcmp(attribute, "overall") == 0) {
-        if (new_value < 0 || new_value > 100) {
-            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
-        }
-        p->overall_rating = new_value;
-    } else if (strcmp(attribute, "potential") == 0) {
-        if (new_value < 0 || new_value > 100) {
-            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
-        }
-        p->potential_rating = new_value;
-    } else if (strcmp(attribute, "own") == 0) {
-        if (new_value < 0 || new_value > 100) {
-            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
-        }
-        p->own_rating = new_value;
-    } else {
-        return SP_ERR_INVALID_CMD;  /* Invalid attribute */
-    }
-    return SP_SUCCESS;
-}
-
-
-
 /* ========================================================================== */
 /* Cleanup Function (exported)                                                */
 /* ========================================================================== */
 
-/**
- * @brief Free all application resources.
- * 
- * Frees all formations, positions, and players. Resets all global
- * pointers (formation_head, player_head, current_formation) to NULL.
- * 
- * @note After this call, current_formation is invalid (NULL).
- *       This function should only be called during application shutdown
- *       or before loading new data from a file (load_from_file).
- */
-void cleanup_all(void) {
-    while (current_squad && current_squad->formations != NULL) {
-        formation* temp = current_squad->formations;
-        current_squad->formations = current_squad->formations->next;
-        cleanup_formation(temp);
-    }
-    current_formation = NULL;
-    while (current_squad && current_squad->players != NULL) {
-        player* temp = current_squad->players;
-        current_squad->players = current_squad->players->next;
-        cleanup_player(temp);
-    }
-}
+
 
 /* ========================================================================== */
 /* Persistence Accessor Functions                                             */

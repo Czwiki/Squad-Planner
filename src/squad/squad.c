@@ -160,6 +160,29 @@ int setting_no_current_squad(void) {
     return SP_SUCCESS;
 }
 
+/**
+ * @brief Free all application resources.
+ * 
+ * Frees all formations, positions, and players. Resets all global
+ * pointers (formation_head, player_head, current_formation) to NULL.
+ * 
+ * @note After this call, current_formation is invalid (NULL).
+ *       This function should only be called during application shutdown
+ *       or before loading new data from a file (load_from_file).
+ */
+void cleanup_all(void) {
+    while (current_squad && current_squad->formations != NULL) {
+        formation* temp = current_squad->formations;
+        current_squad->formations = current_squad->formations->next;
+        cleanup_formation(temp);
+    }
+    while (current_squad && current_squad->players != NULL) {
+        player* temp = current_squad->players;
+        current_squad->players = current_squad->players->next;
+        cleanup_player(temp);
+    }
+}
+
 void clear_all_squads(void) {
     while (squad_head) {
         current_squad = squad_head; /* make this squad current so cleanup_all frees its players/formations */
@@ -171,8 +194,6 @@ void clear_all_squads(void) {
         free(tmp);
     }
     current_squad = NULL;
-    setting_squad_formation(NULL);
-    setting_squad_player(NULL);
 }
 
 /* Public setter used by other modules to update the current squad's

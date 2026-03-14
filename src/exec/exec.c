@@ -437,9 +437,68 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
 
 static int exec_player_command(int cmd_id, char **args, char **options) {
     int ret_val = 0;
+    char *usage = NULL;
+    char *description = NULL;
+    int sanity_check = 0;
     switch (cmd_id) {
         case 0:  /* help */
             ret_val = print_help_page_player();
+            break;
+        case 1: /* newP */
+            if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            if (strlen(args[0]) > 40) {
+                ret_val = SP_ERR_WRONG_USAGE;  /* name too large */
+                break;
+            }
+            usage = "newP <name> <age> <overall> <potential> <own> [--help]";
+            description = "Creates a new player with the specified attributes and adds them to the global player list. If you wish to add a player with names consisting of multiople words, use underscores instead (e.g., 'Ter_Stegen', 'Christiano_Ronaldo'). All other non-alphabetical characters are treated as valid input. Name can only have 40 characters maximum. Age must be greater than 0, and ratings must be between 0 and 100.";
+            sanity_check = sanity_check_and_help(args, options, 5, 5, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+                else ret_val = sanity_check;  /* Error */
+                break;
+            }
+            ret_val = new_player(args, options);
+            break;
+        case 2: /* openP */
+            //usage = "openP <player_name> [--help]";
+            //description = "Opens an existing player for editing. The player must already exist. This command is under development and will allow you to edit player attributes and manage their assigned positions in future updates.";
+            //sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+            //if (sanity_check != 0) {
+            //    if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+            //    else ret_val = sanity_check;  /* Error */
+            //    break;
+            //}
+            //ret_val = open_player(args, options);
+            break;
+        case 3: /* list */
+            usage = "list [--help]";
+            description = "Displays a list of all players that have been created.";
+            sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+                else ret_val = sanity_check;  /* Error */
+                break;
+            }
+            ret_val = list_players();
+            break;
+        case 4: /* deleteP */
+            if (!args && !options) {
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            usage = "deleteP <player_name> [--help]";
+            description = "Removes the specified player from the global player list and all positions they are assigned to. The player must already exist.";
+            sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+                else ret_val = sanity_check;  /* Error */
+                break;
+            }
+            ret_val = delete_player(args, options);
             break;
         default:
             break;

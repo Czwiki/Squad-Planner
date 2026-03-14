@@ -57,25 +57,22 @@ static char* command_inputs_squad[8] = {"help", "new", "list", "open", "formatio
  * 
  * Index  0: help       - Display formation menu help
  * Index  1: new        - Create a new formation
- * Index  2: newP       - Create a new player
- * Index  3: preference - Adjust player preferences in a position
- * Index  4: add        - Add positions to the formation
- * Index  5: addP       - Add a player to a position
- * Index  6: remove     - Remove a position from the formation
- * Index  7: removeP    - Remove a player from a position
- * Index  8: list       - List players assigned to a position
- * Index  9: listf      - List all formations
- * Index 10: open       - Open an existing formation
- * Index 11: show       - Display the formation in tactical view
- * Index 12: deletef    - Remove an existing formation
- * Index 13: deleteP    - Remove an existing player
- * Index 14: editP      - Edit a player's attributes
- * Index 15: save       - Save the current formation (transitions to saves menu)
- * Index 16: back       - Return to main menu
+ * Index  2: preference - Adjust player preferences in a position
+ * Index  3: add        - Add positions to the formation
+ * Index  4: addP       - Add a player to a position
+ * Index  5: remove     - Remove a position from the formation
+ * Index  6: removeP    - Remove a player from a position
+ * Index  7: list       - List players assigned to a position
+ * Index  8: listf      - List all formations
+ * Index 9: open       - Open an existing formation
+ * Index 10: show       - Display the formation in tactical view
+ * Index 11: deletef    - Remove an existing formation
+ * Index 12: save       - Save the current formation (transitions to saves menu)
+ * Index 13: back       - Return to main menu
  */
-static char* command_inputs_formation[17] = {
-    "help", "new", "newP", "preference", "add", "addP",
-    "remove", "removeP", "list", "listf", "open", "show", "deletef","deleteP", "editP", "save", "back"
+static char* command_inputs_formation[14] = {
+    "help", "new", "preference", "add", "addP",
+    "remove", "removeP", "list", "listf", "open", "show", "deletef","save", "back"
 };
 
 /**
@@ -83,15 +80,14 @@ static char* command_inputs_formation[17] = {
  * 
  * Index 0: help   - Display player menu help
  * Index 1: newP   - Create a new player
- * Index 2: list   - List all players
- * Index 3: show   - Show details of the current player
+ * Index 2: openP  - Open an existing player for editing (not yet implemented)
+ * Index 3: list   - List all players
  * Index 4: deleteP- Remove an existing player
- * Index 5: editP  - Edit an existing player's attributes
- * Index 6: save   - Save current player data (transitions to saves menu)
- * Index 7: back   - Return to squad menu
+ * Index 5: save   - Save current player data (transitions to saves menu)
+ * Index 6: back   - Return to squad menu
  */
 
-static char* command_inputs_player[9] = {"help", "newP", "openP", "list", "deleteP", "editP", "save", "back"};
+static char* command_inputs_player[7] = {"help", "newP", "openP", "list", "deleteP", "save", "back"};
 
 /**
  * @brief Valid commands in the saves menu context.
@@ -160,11 +156,11 @@ int parse_command(const char* line, int current_context, command* cmd) {
             break;
         case 2:  /* Formation menu context */
             command_inputs = command_inputs_formation;
-            length = 17;
+            length = 14;
             break;
         case 3:  /* Player menu context - currently no commands, but set up for future expansion */
             command_inputs = command_inputs_player;
-            length = 9;
+            length = 7;
             break;
         case 4:  /* Saves menu context */
             command_inputs = command_inputs_saves;
@@ -238,11 +234,14 @@ int parse_command(const char* line, int current_context, command* cmd) {
                             }
                             break;
                         case 2:  /* Formation menu */
-                            if (i == 16) {
+                            if (i == 13) {
                                 new_context = 1;  /* 'back' -> return to squad menu */
                             }
                             break;
-                        case 3:  /* Player menu - currently no commands, but set up for future expansion */
+                        case 3:  /* Player menu */
+                            if (i == 6) {
+                                new_context = 1;  /* 'back' -> return to squad menu */
+                            }
                             break;
                         case 4:  /* Saves menu */
                             if (i == 3) {

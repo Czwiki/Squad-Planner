@@ -41,4 +41,14 @@ struct player {
 
 int setting_squad_player(Squad* squad);
 
+void cleanup_player(player* current);
+
+int new_player(char** args, char** options);
+
+int list_players(void);
+
+int delete_player(char** args, char** options);
+
+int edit_player(char** args, char** options);
+
 #endif /* PLAYER_H */
