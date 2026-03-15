@@ -42,10 +42,12 @@ int new_squad(char** args, char** options) {
         return SP_SUCCESS;
     }
     Squad* temp = squad_head;
-    while (temp->next != NULL) {
+    Squad* tail = NULL;
+    while (temp != NULL) {
         if (strcmp(temp->name, args[0]) == 0) {
             return SP_ERR_SQUAD_EXISTS;  /* Squad with this name already exists */
         }
+        tail = temp;
         temp = temp->next;
     }
     Squad* new_squad = malloc(sizeof(Squad));
@@ -60,7 +62,7 @@ int new_squad(char** args, char** options) {
     new_squad->players = NULL;
     new_squad->formations = NULL;
     new_squad->next = NULL;
-    temp->next = new_squad;
+    tail->next = new_squad;
     current_squad = new_squad;
     setting_squad_formation(current_squad);  /* Inform player and formation modules of current squad change */
     setting_squad_player(current_squad);

@@ -24,6 +24,7 @@
 #include "../persistence/persistence.h"
 #include "../error/error.h"
 #include "../squad/squad.h"
+#include "../player/player.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -215,26 +216,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = new_formation(args, options);
             break;
-        case 2:   /* newP */
-            if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
-                ret_val = SP_ERR_WRONG_USAGE;
-                break;
-            }
-            usage = "newP <name> <age> <overall> <potential> <own> [--help]";
-            description = "Creates a new player with the specified attributes and adds them to the global player list. If you wish to add a player with names consisting of multiople words, use underscores instead (e.g., 'Ter_Stegen', 'Christiano_Ronaldo'). All other non-alphabetical characters are treated as valid input. Name can only have 40 characters maximum. Age must be greater than 0, and ratings must be between 0 and 100.";
-            sanity_check = sanity_check_and_help(args, options, 5, 1, 1, 0, usage, description);
-            if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
-                break;
-            }
-            if (strlen(args[0]) > 40) {
-                ret_val = SP_ERR_WRONG_USAGE;  /* name too large */
-                break;
-            }
-            ret_val = new_player(args, options);
-            break;
-        case 3:   /* preference */
+        case 2:   /* preference */
             if (!args && !options) { 
                 ret_val =  SP_ERR_WRONG_USAGE;
                 break;
@@ -258,7 +240,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = preferences(args, options);
             break;
-        case 4:   /* add */
+        case 3:   /* add */
             if (!args && !options) { // reduce redundancy in code by checking for null pointers at the beginning of the function
                 ret_val = SP_ERR_WRONG_USAGE;
                 break;
@@ -273,7 +255,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = add_position_to_formation(args, options);
             break;
-        case 5:   /* addP */
+        case 4:   /* addP */
             if (!args && !options) {
                 ret_val = SP_ERR_WRONG_USAGE;
                 break;
@@ -289,7 +271,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = add_player_to_position(args, options);
             break;
-        case 6:   /* remove */
+        case 5:   /* remove */
             if (!args && !options) {
                 ret_val = SP_ERR_WRONG_USAGE; // one must be present
                 break;
@@ -304,7 +286,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = remove_position_from_formation(args, options);
             break;
-        case 7:   /* removeP */
+        case 6:   /* removeP */
             if (!args && !options) {
                 ret_val = SP_ERR_WRONG_USAGE;
                 break;
@@ -319,7 +301,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = remove_player_from_position(args, options);
             break;
-        case 8:   /* list */
+        case 7:   /* list */
             if (!args && !options) {
                 ret_val = SP_ERR_WRONG_USAGE;
                 break;
@@ -335,7 +317,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = list_players_of_position(args, options);
             break;
-        case 9:   /* listf */
+        case 8:   /* listf */
             if (args && args[0] != NULL) {
                 ret_val = SP_ERR_WRONG_USAGE;
                 break;
@@ -350,7 +332,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = list_formations(options);
             break;
-        case 10:  /* open */
+        case 9:   /* open */
             if (!args && !options) {
                 ret_val = SP_ERR_WRONG_USAGE;  /* No arguments or options provided */
                 break;
@@ -366,7 +348,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = open_formation(args, options);
             break;
-        case 11:  /* show */
+        case 10:  /* show */
             if (args && args[0] != NULL) {
                 ret_val = SP_ERR_WRONG_USAGE;
                 break;
@@ -381,7 +363,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = show(options);
             break;
-        case 12:  /* deletef */
+        case 11:  /* deletef */
             if (!args && !options) {
                 ret_val = SP_ERR_WRONG_USAGE;
                 break;
@@ -396,39 +378,6 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             ret_val = delete_formation(args, options);
             break;
-        case 13: /* deleteP */
-            if (!args && !options) {
-                ret_val = SP_ERR_WRONG_USAGE;
-                break;
-            }
-            usage = "deleteP <player_name> [--help]";
-            description = "Removes the specified player from the global player list and all positions they are assigned to. The player must already exist.";
-            sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
-            if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
-                break;
-            }
-            ret_val = delete_player(args, options);
-            break;
-        case 14:  /* editP */
-            if (!args && !options) {
-                ret_val = SP_ERR_WRONG_USAGE;
-                break;
-            }
-            usage = "editP <player_name> <attribute> <new_value> [--help]";
-            description = "Edits the specified attribute of a player. Attributes can be 'age', 'overall', 'potential', or 'own'. The player must already exist.";
-            sanity_check = sanity_check_and_help(args, options, 3, 3, 1, 0, usage, description);
-            if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
-                break;
-            }
-            ret_val = edit_player(args, options);
-            break;
-        //case 15:  /* save – persist all data to JSON file */
-        //    ret_val = save_to_file(args ? args[0] : NULL);
-        //    break;
         default:
             break;
     }
@@ -464,15 +413,15 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
             ret_val = new_player(args, options);
             break;
         case 2: /* openP */
-            //usage = "openP <player_name> [--help]";
-            //description = "Opens an existing player for editing. The player must already exist. This command is under development and will allow you to edit player attributes and manage their assigned positions in future updates.";
-            //sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
-            //if (sanity_check != 0) {
-            //    if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-            //    else ret_val = sanity_check;  /* Error */
-            //    break;
-            //}
-            //ret_val = open_player(args, options);
+            usage = "openP <player_name> [--help]";
+            description = "Opens an existing player for editing. The player must already exist.";
+            sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+                else ret_val = sanity_check;  /* Error */
+                break;
+            }
+            ret_val = open_player(args, options);
             break;
         case 3: /* list */
             usage = "list [--help]";
@@ -499,6 +448,79 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
                 break;
             }
             ret_val = delete_player(args, options);
+            break;
+        case 5: /* editP */
+            if (!args && !options) {
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            usage = "editP <player_name> <attribute> <new_value> [--help]";
+            description = "Edits a base attribute of a player. Valid attributes: 'age', 'overall', 'potential', 'own'. To modify statistics use 'openP' to enter the player editing sub-menu and then use 'add'.";
+            sanity_check = sanity_check_and_help(args, options, 3, 3, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
+                else ret_val = sanity_check;  /* Error */
+                break;
+            }
+            ret_val = edit_player(args, options);
+            break;
+        default:
+            break;
+    }
+    return ret_val;
+}
+
+static int exec_player_edit_command(int cmd_id, char **args, char **options) {
+    int ret_val = 0;
+    char *usage = NULL;
+    char *description = NULL;
+    int sanity_check = 0;
+    switch (cmd_id) {
+        case 0:  /* help */
+            ret_val = print_help_page_player_edit();
+            break;
+        case 1:  /* show */
+            usage = "show [--help]";
+            description = "Displays all attributes and statistics of the currently open player.";
+            sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;
+                else ret_val = sanity_check;
+                break;
+            }
+            ret_val = show_player();
+            break;
+        case 2:  /* set */
+            if (!args && !options) {
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            usage = "set <attribute> <value> [--help]";
+            description = "Sets a base attribute of the currently open player. Valid attributes: age, overall, potential, own.";
+            sanity_check = sanity_check_and_help(args, options, 2, 2, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;
+                else ret_val = sanity_check;
+                break;
+            }
+            ret_val = set_player_attr(args, options);
+            break;
+        case 3:  /* add */
+            if (!args && !options) {
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            usage = "add <stat> [amount] [--help]";
+            description = "Increments a statistic of the currently open player by the given amount (default: 1). Valid stats: goals, assists, appearances, yellow_cards, red_cards.";
+            sanity_check = sanity_check_and_help(args, options, 2, 1, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;
+                else ret_val = sanity_check;
+                break;
+            }
+            ret_val = add_player_stat(args, options);
+            break;
+        case 4:  /* back – handled via context switch */
             break;
         default:
             break;
@@ -556,12 +578,11 @@ static int exec_load_command(int cmd_id, char** args, char** options) {
 int execute_command(command* cmd, int context) {
     /* SP_CONTEXT_CLEANUP is the cleanup sentinel – cmd may be NULL */
     if (context == SP_CONTEXT_CLEANUP) {
-        cleanup_all();
+        clear_all_squads();
         return SP_SUCCESS;
     }
     if (!cmd) return SP_ERR_NULL_PTR;
 
-    printf("Executing command ID %d in context %d\n", cmd->id, context);
     int ret_val = 0;
     switch (context) {
         case 0:  /* Main menu */
@@ -578,6 +599,9 @@ int execute_command(command* cmd, int context) {
             break;
         case 4:  /* Saves menu */
             ret_val = exec_load_command(cmd->id, cmd->args, cmd->options);
+            break;
+        case 5:  /* Player editing sub-menu */
+            ret_val = exec_player_edit_command(cmd->id, cmd->args, cmd->options);
             break; 
         default:
             break;
@@ -592,4 +616,8 @@ int current_formation_name(char* dest) {
 
 int current_squad_name(char* dest) {
     return get_current_squad_name(dest);
+}
+
+int current_player_name(char* dest) {
+    return get_current_player_name(dest);
 }

@@ -34,7 +34,6 @@ int list_squads(void);
 int open_squad(char** args, char** options);
 int to_formation(void);
 int to_players(void);
-int save_squad(char** args, char** options);
 
 int get_current_squad_name(char* dest);
 
@@ -44,13 +43,10 @@ Squad* get_squad_head(void);
 /* Clear the current squad selection (used by persistence) */
 int setting_no_current_squad(void);
 
+/* Free all formations and players for the currently active squad */
+void cleanup_all(void);
+
 /* Remove all squads and their contents from memory */
 void clear_all_squads(void);
-
-/* Set the formations head pointer for the currently active squad.
- * This is the public setter used by other modules (e.g., formation.c)
- * to update the squad's stored formation list.
- */
-int set_current_squad_formations(struct formation* head);
 
 #endif /* SQUAD_H */

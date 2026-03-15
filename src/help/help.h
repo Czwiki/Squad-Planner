@@ -22,6 +22,8 @@ int print_help_page_formation(void);
 
 int print_help_page_player(void);
 
+int print_help_page_player_edit(void);
+
 /**
  * @brief Display the saves menu help page.
  * @return 0 on success, -1 on error

@@ -20,9 +20,9 @@ int print_help_page_main(void) {
     printf("Main menu Help Page\n");
     printf("-------------------\n");
     printf("Available commands in the main menu:\n");
-    printf("1. help      - Display this help page\n");
-    printf("2. squad     - Enter the squad planning menu\n");
-    printf("3. load      - Load saved data from file (not yet implemented)\n");
+    printf("1. help  - Display this help page\n");
+    printf("2. squad - Enter the squad planning menu\n");
+    printf("3. load  - Load saved data from file (transitions to saves menu)\n");
     printf("These commands allow you to navigate to different parts of the application. They do not accept arguments or options.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
@@ -35,14 +35,14 @@ int print_help_page_squad(void) {
     printf("Squad menu Help Page\n");
     printf("-------------------\n");
     printf("Available commands in the squad menu:\n");
-    printf("1. help - Display this help page\n");
-    printf("2. new  - Create a new squad (not yet implemented)\n");
-    printf("3. list - List all squads (not yet implemented)\n");
-    printf("4. open - Open an existing squad (not yet implemented)\n");
+    printf("1. help      - Display this help page\n");
+    printf("2. new       - Create a new squad\n");
+    printf("3. list      - List all squads\n");
+    printf("4. open      - Open an existing squad\n");
     printf("5. formation - Enter the formation menu\n");
-    printf("6. players - Enter the player menu (not yet implemented)\n");
-    printf("7. back - Return to main menu\n");
-    printf("8. save - Save current squad data\n");
+    printf("6. players   - Enter the player menu\n");
+    printf("7. back      - Return to main menu\n");
+    printf("8. save      - Save current data (transitions to saves menu)\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
@@ -63,20 +63,21 @@ int print_help_page_formation(void) {
     printf("Formation menu Help Page\n");
     printf("------------------------\n");
     printf("Available commands in the formation menu:\n");
-    printf("1. help       - Display this help page\n");
-    printf("2. new        - Create a new formation\n");
-    printf("3. newP       - Create a new player\n");
-    printf("4. preference - Adjust player preferences in a position\n");
-    printf("5. add        - Add a position to the formation\n");
-    printf("6. addP       - Add a player to a position\n");
-    printf("7. remove     - Remove a position from the formation\n");
-    printf("8. removeP    - Remove a player from a position\n");
-    printf("9. list       - List all players assigned to a position\n");
-    printf("10. listf     - List all formations\n");
-    printf("11. open      - Open a formation file\n");
-    printf("12. show      - Show the current formation in tactical view\n");
-    printf("13. save      - Save data\n");
-    printf("14. back      - Return to the main menu\n");
+    printf(" 1. help       - Display this help page\n");
+    printf(" 2. new        - Create a new formation\n");
+    printf(" 3. preference - Adjust player preferences in a position\n");
+    printf(" 4. add        - Add a position to the formation\n");
+    printf(" 5. addP       - Add an existing player to a position\n");
+    printf(" 6. remove     - Remove a position from the formation\n");
+    printf(" 7. removeP    - Remove a player from a position\n");
+    printf(" 8. list       - List all players assigned to a position\n");
+    printf(" 9. listf      - List all formations\n");
+    printf("10. open       - Open a formation for editing\n");
+    printf("11. show       - Show the current formation in tactical view\n");
+    printf("12. deletef    - Remove an existing formation\n");
+    printf("13. save       - Save data (transitions to saves menu)\n");
+    printf("14. back       - Return to the squad menu\n");
+    printf("To create, edit, or delete players, use the player menu ('players' command in squad menu).\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
@@ -89,14 +90,36 @@ int print_help_page_player(void) {
     printf("Player menu Help Page\n");
     printf("-------------------\n");
     printf("Available commands in the player menu:\n");
+    printf("1. help    - Display this help page\n");
+    printf("2. newP    - Create a new player\n");
+    printf("3. openP   - Open an existing player (enters player editing sub-menu)\n");
+    printf("4. list    - List all players\n");
+    printf("5. deleteP - Remove an existing player\n");
+    printf("6. editP   - Quick-edit a player's base attributes (age, overall, potential, own)\n");
+    printf("7. save    - Save current data (transitions to saves menu)\n");
+    printf("8. back    - Return to squad menu\n");
+    printf("To edit statistics use 'openP' to enter the player editing sub-menu.\n");
+    printf("For help on explicit commands, type '<command> --help'\n");
+    if (fflush(stdout) != 0) {
+        perror("Error flushing stdout: ");
+        return SP_ERR_INTERNAL;
+    }
+    return SP_SUCCESS;
+}
+
+int print_help_page_player_edit(void) {
+    printf("Player editing Help Page\n");
+    printf("------------------------\n");
+    printf("Available commands in the player editing sub-menu:\n");
     printf("1. help - Display this help page\n");
-    printf("2. newP - Create a new player (not yet implemented)\n");
-    printf("3. list - List all players (not yet implemented)\n");
-    printf("4. show - Show details of the current player (not yet implemented)\n");
-    printf("5. deleteP - Remove an existing player (not yet implemented)\n");
-    printf("6. editP - Edit an existing player's attributes (not yet implemented)\n");
-    printf("7. save - Save current player data (transitions to saves menu)\n");
-    printf("8. back - Return to squad menu\n");
+    printf("2. show - Display all attributes and statistics of the current player\n");
+    printf("3. set  - Set a base attribute of the current player\n");
+    printf("          Usage: set <attribute> <value>\n");
+    printf("          Attributes: age, overall, potential, own\n");
+    printf("4. add  - Increment a statistic of the current player\n");
+    printf("          Usage: add <stat> [amount]  (amount defaults to 1)\n");
+    printf("          Stats: goals, assists, appearances, yellow_cards, red_cards\n");
+    printf("5. back - Return to player menu\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
