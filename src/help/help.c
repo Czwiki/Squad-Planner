@@ -92,13 +92,34 @@ int print_help_page_player(void) {
     printf("Available commands in the player menu:\n");
     printf("1. help    - Display this help page\n");
     printf("2. newP    - Create a new player\n");
-    printf("3. openP   - Open an existing player\n");
+    printf("3. openP   - Open an existing player (enters player editing sub-menu)\n");
     printf("4. list    - List all players\n");
     printf("5. deleteP - Remove an existing player\n");
-    printf("6. editP   - Edit a player's attributes or stats\n");
-    printf("             (age, overall, potential, own, goals, assists, appearances, yellow_cards, red_cards)\n");
+    printf("6. editP   - Quick-edit a player's base attributes (age, overall, potential, own)\n");
     printf("7. save    - Save current data (transitions to saves menu)\n");
     printf("8. back    - Return to squad menu\n");
+    printf("To edit statistics use 'openP' to enter the player editing sub-menu.\n");
+    printf("For help on explicit commands, type '<command> --help'\n");
+    if (fflush(stdout) != 0) {
+        perror("Error flushing stdout: ");
+        return SP_ERR_INTERNAL;
+    }
+    return SP_SUCCESS;
+}
+
+int print_help_page_player_edit(void) {
+    printf("Player editing Help Page\n");
+    printf("------------------------\n");
+    printf("Available commands in the player editing sub-menu:\n");
+    printf("1. help - Display this help page\n");
+    printf("2. show - Display all attributes and statistics of the current player\n");
+    printf("3. set  - Set a base attribute of the current player\n");
+    printf("          Usage: set <attribute> <value>\n");
+    printf("          Attributes: age, overall, potential, own\n");
+    printf("4. add  - Increment a statistic of the current player\n");
+    printf("          Usage: add <stat> [amount]  (amount defaults to 1)\n");
+    printf("          Stats: goals, assists, appearances, yellow_cards, red_cards\n");
+    printf("5. back - Return to player menu\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");

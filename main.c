@@ -158,6 +158,13 @@ int main(int argc, char const* argv[])
                     }
                     context = cmd->future_context;
                     break;
+                case 5:
+                    ret_val = snprintf(prompt, 70, "squad-planner - player> ");
+                    if (ret_val < 0 || ret_val >= 70) {
+                        die("Error setting prompt: ");
+                    }
+                    context = cmd->future_context;
+                    break;
                 default:
                     break;
             }
@@ -211,6 +218,30 @@ int main(int argc, char const* argv[])
                     }
                     else {
                         die("Error getting current formation name: ");
+                    }
+                }
+                if (context == 3) { // openP in player menu: enter player editing sub-menu
+                    if (cmd->id == 2) { // openP succeeded – switch to player editing sub-menu
+                        context = 5;
+                    }
+                }
+                if (context == 5) { // player editing sub-menu dynamic prompt
+                    char in[40] = {0};
+                    int result = current_player_name(in);
+                    if (result == SP_SUCCESS) {
+                        ret_val = snprintf(prompt, 70, "squad-planner - '%s' player> ", in);
+                        if (ret_val < 0 || ret_val >= 70) {
+                            die("Error setting prompt: ");
+                        }
+                    }
+                    else if (result == SP_ERR_PLAYER_NOT_FOUND) {
+                        ret_val = snprintf(prompt, 70, "squad-planner - player> ");
+                        if (ret_val < 0 || ret_val >= 70) {
+                            die("Error setting prompt: ");
+                        }
+                    }
+                    else {
+                        die("Error getting current player name: ");
                     }
                 }
             }

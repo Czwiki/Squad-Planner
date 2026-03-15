@@ -5,12 +5,13 @@
  * This module is responsible for parsing user input from the command line
  * and converting it into a structured command object that can be executed.
  * 
- * The parser supports five different contexts (menus):
+ * The parser supports six different contexts (menus):
  * - Main menu (context 0): Entry point with basic navigation commands
  * - Squad menu (context 1): Commands for creating and managing squads
  * - Formation menu (context 2): Commands for managing formations and players
  * - Player menu (context 3): Commands for managing the player roster
  * - Saves menu (context 4): Commands for saving/loading data
+ * - Player editing sub-menu (context 5): Commands for editing the open player's attributes and stats
  * 
  * Each context has its own set of valid commands. The parser validates
  * the command name against the current context and extracts any options
@@ -83,15 +84,26 @@ static char* command_inputs_formation[14] = {
  * 
  * Index 0: help    - Display player menu help
  * Index 1: newP    - Create a new player
- * Index 2: openP   - Open an existing player
+ * Index 2: openP   - Open an existing player (enters player editing sub-menu)
  * Index 3: list    - List all players
  * Index 4: deleteP - Remove an existing player
- * Index 5: editP   - Edit an existing player's attributes or stats
+ * Index 5: editP   - Quick-edit a player's base attributes
  * Index 6: save    - Save current player data (transitions to saves menu)
  * Index 7: back    - Return to squad menu
  */
 
 static char* command_inputs_player[8] = {"help", "newP", "openP", "list", "deleteP", "editP", "save", "back"};
+
+/**
+ * @brief Valid commands in the player editing sub-menu context.
+ *
+ * Index 0: help - Display player editing help
+ * Index 1: show - Display all attributes and statistics of the current player
+ * Index 2: set  - Set a base attribute of the current player
+ * Index 3: add  - Increment a statistic of the current player
+ * Index 4: back - Return to player menu
+ */
+static char* command_inputs_player_edit[5] = {"help", "show", "set", "add", "back"};
 
 /**
  * @brief Valid commands in the saves menu context.
@@ -169,6 +181,10 @@ int parse_command(const char* line, int current_context, command* cmd) {
         case 4:  /* Saves menu context */
             command_inputs = command_inputs_saves;
             length = 4;
+            break;
+        case 5:  /* Player editing sub-menu context */
+            command_inputs = command_inputs_player_edit;
+            length = 5;
             break;
         default:
             free(buffer);
@@ -256,6 +272,11 @@ int parse_command(const char* line, int current_context, command* cmd) {
                         case 4:  /* Saves menu */
                             if (i == 3) {
                                 new_context = 0;  /* 'back' -> return to main menu */
+                            }
+                            break;
+                        case 5:  /* Player editing sub-menu */
+                            if (i == 4) {
+                                new_context = 3;  /* 'back' -> return to player menu */
                             }
                             break;
                         default:

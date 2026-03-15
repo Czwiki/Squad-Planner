@@ -14,7 +14,7 @@
  * Index 2: openP   - Open an existing player
  * Index 3: list    - List all players
  * Index 4: deleteP - Remove an existing player
- * Index 5: editP   - Edit an existing player's attributes or stats
+ * Index 5: editP   - Quick-edit a player's base attributes (age, overall, potential, own)
  * Index 6: save    - Save current player data (transitions to saves menu)
  * Index 7: back    - Return to squad menu
  */
@@ -276,33 +276,157 @@ int edit_player(char** args, char** options) {
             return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
         }
         p->own_rating = new_value;
-    } else if (strcmp(attribute, "goals") == 0) {
-        if (new_value < 0) {
-            return SP_ERR_INVALID_RANGE;
-        }
-        p->stats.goals = new_value;
-    } else if (strcmp(attribute, "assists") == 0) {
-        if (new_value < 0) {
-            return SP_ERR_INVALID_RANGE;
-        }
-        p->stats.assists = new_value;
-    } else if (strcmp(attribute, "appearances") == 0) {
-        if (new_value < 0) {
-            return SP_ERR_INVALID_RANGE;
-        }
-        p->stats.appearances = new_value;
-    } else if (strcmp(attribute, "yellow_cards") == 0) {
-        if (new_value < 0) {
-            return SP_ERR_INVALID_RANGE;
-        }
-        p->stats.yellow_cards = new_value;
-    } else if (strcmp(attribute, "red_cards") == 0) {
-        if (new_value < 0) {
-            return SP_ERR_INVALID_RANGE;
-        }
-        p->stats.red_cards = new_value;
+    } else if (strcmp(attribute, "goals") == 0 ||
+               strcmp(attribute, "assists") == 0 ||
+               strcmp(attribute, "appearances") == 0 ||
+               strcmp(attribute, "yellow_cards") == 0 ||
+               strcmp(attribute, "red_cards") == 0) {
+        /* Stats can only be incremented: use openP then 'add' inside the player editing menu */
+        printf("Stats cannot be set directly. Open the player with 'openP' and use 'add' to increment stats.\n");
+        return SP_ERR_INVALID_CMD;
     } else {
         return SP_ERR_INVALID_CMD;  /* Invalid attribute */
+    }
+    return SP_SUCCESS;
+}
+
+/**
+ * @brief Get the name of the currently open player, with underscores replaced by spaces.
+ *
+ * @param dest Buffer of at least 40 characters to receive the name
+ * @return SP_SUCCESS on success, SP_ERR_PLAYER_NOT_FOUND if no player is open,
+ *         SP_ERR_MEMORY on allocation error
+ */
+int get_current_player_name(char* dest) {
+    if (!current_player) {
+        return SP_ERR_PLAYER_NOT_FOUND;
+    }
+    char* cleaned = strdup(current_player->name);
+    if (!cleaned) {
+        return SP_ERR_MEMORY;
+    }
+    if (clean_name_string(cleaned) != SP_SUCCESS) {
+        free(cleaned);
+        return SP_ERR_MEMORY;
+    }
+    strncpy(dest, cleaned, 39);
+    dest[39] = '\0';
+    free(cleaned);
+    return SP_SUCCESS;
+}
+
+/**
+ * @brief Display all attributes and statistics of the currently open player.
+ *
+ * @return SP_SUCCESS on success, SP_ERR_PLAYER_NOT_FOUND if no player is open
+ */
+int show_player(void) {
+    if (!current_player) {
+        return SP_ERR_PLAYER_NOT_FOUND;
+    }
+    char* cleaned = strdup(current_player->name);
+    if (!cleaned) {
+        return SP_ERR_MEMORY;
+    }
+    if (clean_name_string(cleaned) != SP_SUCCESS) {
+        free(cleaned);
+        return SP_ERR_MEMORY;
+    }
+    printf("Player: %s\n", cleaned);
+    free(cleaned);
+    printf("  Age:        %d\n", current_player->age);
+    printf("  Overall:    %d\n", current_player->overall_rating);
+    printf("  Potential:  %d\n", current_player->potential_rating);
+    printf("  Own Rating: %d\n", current_player->own_rating);
+    printf("  --- Stats ---\n");
+    printf("  Goals:        %d\n", current_player->stats.goals);
+    printf("  Assists:      %d\n", current_player->stats.assists);
+    printf("  Appearances:  %d\n", current_player->stats.appearances);
+    printf("  Yellow Cards: %d\n", current_player->stats.yellow_cards);
+    printf("  Red Cards:    %d\n", current_player->stats.red_cards);
+    return SP_SUCCESS;
+}
+
+/**
+ * @brief Set a base attribute of the currently open player.
+ *
+ * @param args Array: [0]=attribute name, [1]=new value string
+ *             Valid attributes: age, overall, potential, own
+ * @return SP_SUCCESS on success, appropriate error code on failure
+ */
+int set_player_attr(char** args, char** options) {
+    if (!current_player) {
+        return SP_ERR_PLAYER_NOT_FOUND;
+    }
+    char* attribute = args[0];
+    char *endptr;
+    int new_value = strtol(args[1], &endptr, 10);
+    if (endptr == args[1]) {
+        return SP_ERR_INTERNAL;
+    }
+
+    if (strcmp(attribute, "age") == 0) {
+        if (new_value <= 0) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        current_player->age = new_value;
+    } else if (strcmp(attribute, "overall") == 0) {
+        if (new_value < 0 || new_value > 100) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        current_player->overall_rating = new_value;
+    } else if (strcmp(attribute, "potential") == 0) {
+        if (new_value < 0 || new_value > 100) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        current_player->potential_rating = new_value;
+    } else if (strcmp(attribute, "own") == 0) {
+        if (new_value < 0 || new_value > 100) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        current_player->own_rating = new_value;
+    } else {
+        return SP_ERR_INVALID_CMD;
+    }
+    return SP_SUCCESS;
+}
+
+/**
+ * @brief Increment a statistic of the currently open player.
+ *
+ * @param args Array: [0]=stat name, [1]=amount to add (optional, defaults to 1)
+ *             Valid stats: goals, assists, appearances, yellow_cards, red_cards
+ * @return SP_SUCCESS on success, appropriate error code on failure
+ */
+int add_player_stat(char** args, char** options) {
+    if (!current_player) {
+        return SP_ERR_PLAYER_NOT_FOUND;
+    }
+    char* stat = args[0];
+    int amount = 1;  /* Default increment */
+    if (args[1]) {
+        char *endptr;
+        amount = strtol(args[1], &endptr, 10);
+        if (endptr == args[1]) {
+            return SP_ERR_INTERNAL;
+        }
+        if (amount <= 0) {
+            return SP_ERR_INVALID_RANGE;  /* Increment must be positive */
+        }
+    }
+
+    if (strcmp(stat, "goals") == 0) {
+        current_player->stats.goals += amount;
+    } else if (strcmp(stat, "assists") == 0) {
+        current_player->stats.assists += amount;
+    } else if (strcmp(stat, "appearances") == 0) {
+        current_player->stats.appearances += amount;
+    } else if (strcmp(stat, "yellow_cards") == 0) {
+        current_player->stats.yellow_cards += amount;
+    } else if (strcmp(stat, "red_cards") == 0) {
+        current_player->stats.red_cards += amount;
+    } else {
+        return SP_ERR_INVALID_CMD;
     }
     return SP_SUCCESS;
 }

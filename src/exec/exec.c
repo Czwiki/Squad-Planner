@@ -24,6 +24,7 @@
 #include "../persistence/persistence.h"
 #include "../error/error.h"
 #include "../squad/squad.h"
+#include "../player/player.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -454,7 +455,7 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
                 break;
             }
             usage = "editP <player_name> <attribute> <new_value> [--help]";
-            description = "Edits the specified attribute of a player. Attributes can be 'age', 'overall', 'potential', 'own', 'goals', 'assists', 'appearances', 'yellow_cards', or 'red_cards'. The player must already exist.";
+            description = "Edits a base attribute of a player. Valid attributes: 'age', 'overall', 'potential', 'own'. To modify statistics use 'openP' to enter the player editing sub-menu and then use 'add'.";
             sanity_check = sanity_check_and_help(args, options, 3, 3, 1, 0, usage, description);
             if (sanity_check != 0) {
                 if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
@@ -462,6 +463,64 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
                 break;
             }
             ret_val = edit_player(args, options);
+            break;
+        default:
+            break;
+    }
+    return ret_val;
+}
+
+static int exec_player_edit_command(int cmd_id, char **args, char **options) {
+    int ret_val = 0;
+    char *usage = NULL;
+    char *description = NULL;
+    int sanity_check = 0;
+    switch (cmd_id) {
+        case 0:  /* help */
+            ret_val = print_help_page_player_edit();
+            break;
+        case 1:  /* show */
+            usage = "show [--help]";
+            description = "Displays all attributes and statistics of the currently open player.";
+            sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;
+                else ret_val = sanity_check;
+                break;
+            }
+            ret_val = show_player();
+            break;
+        case 2:  /* set */
+            if (!args && !options) {
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            usage = "set <attribute> <value> [--help]";
+            description = "Sets a base attribute of the currently open player. Valid attributes: age, overall, potential, own.";
+            sanity_check = sanity_check_and_help(args, options, 2, 2, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;
+                else ret_val = sanity_check;
+                break;
+            }
+            ret_val = set_player_attr(args, options);
+            break;
+        case 3:  /* add */
+            if (!args && !options) {
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            usage = "add <stat> [amount] [--help]";
+            description = "Increments a statistic of the currently open player by the given amount (default: 1). Valid stats: goals, assists, appearances, yellow_cards, red_cards.";
+            sanity_check = sanity_check_and_help(args, options, 2, 1, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;
+                else ret_val = sanity_check;
+                break;
+            }
+            ret_val = add_player_stat(args, options);
+            break;
+        case 4:  /* back – handled via context switch */
             break;
         default:
             break;
@@ -540,6 +599,9 @@ int execute_command(command* cmd, int context) {
             break;
         case 4:  /* Saves menu */
             ret_val = exec_load_command(cmd->id, cmd->args, cmd->options);
+            break;
+        case 5:  /* Player editing sub-menu */
+            ret_val = exec_player_edit_command(cmd->id, cmd->args, cmd->options);
             break; 
         default:
             break;
@@ -554,4 +616,8 @@ int current_formation_name(char* dest) {
 
 int current_squad_name(char* dest) {
     return get_current_squad_name(dest);
+}
+
+int current_player_name(char* dest) {
+    return get_current_player_name(dest);
 }
