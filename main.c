@@ -165,7 +165,6 @@ int main(int argc, char const* argv[])
         }
 
         if (executing){      
-            printf("Command ID: %d, Name: %s\n", cmd->id, cmd->name);
             int ret_val = execute_command(cmd, context);
             printf("%s\n", sp_error_string(ret_val));
             if (ret_val == SP_SUCCESS) {

@@ -66,6 +66,11 @@ static cJSON* serialize_players(player* head) {
         cJSON_AddNumberToObject(obj, "overall",    p->overall_rating);
         cJSON_AddNumberToObject(obj, "potential",  p->potential_rating);
         cJSON_AddNumberToObject(obj, "own_rating", p->own_rating);
+        cJSON_AddNumberToObject(obj, "goals",        p->stats.goals);
+        cJSON_AddNumberToObject(obj, "assists",       p->stats.assists);
+        cJSON_AddNumberToObject(obj, "appearances",   p->stats.appearances);
+        cJSON_AddNumberToObject(obj, "yellow_cards",  p->stats.yellow_cards);
+        cJSON_AddNumberToObject(obj, "red_cards",     p->stats.red_cards);
 
         cJSON_AddItemToArray(arr, obj);
     }
@@ -336,6 +341,25 @@ static int deserialize_players(const cJSON* players_arr) {
             j_own->valueint
         );
         if (ret != SP_SUCCESS) return ret;
+
+        /* Stats fields are optional for backwards compatibility */
+        const cJSON* j_goals   = cJSON_GetObjectItemCaseSensitive(p_obj, "goals");
+        const cJSON* j_assists = cJSON_GetObjectItemCaseSensitive(p_obj, "assists");
+        const cJSON* j_apps    = cJSON_GetObjectItemCaseSensitive(p_obj, "appearances");
+        const cJSON* j_yc      = cJSON_GetObjectItemCaseSensitive(p_obj, "yellow_cards");
+        const cJSON* j_rc      = cJSON_GetObjectItemCaseSensitive(p_obj, "red_cards");
+        if (cJSON_IsNumber(j_goals) || cJSON_IsNumber(j_assists) ||
+            cJSON_IsNumber(j_apps)  || cJSON_IsNumber(j_yc)      ||
+            cJSON_IsNumber(j_rc)) {
+            set_player_stats_direct(
+                j_name->valuestring,
+                cJSON_IsNumber(j_goals)   ? j_goals->valueint   : 0,
+                cJSON_IsNumber(j_assists) ? j_assists->valueint : 0,
+                cJSON_IsNumber(j_apps)    ? j_apps->valueint    : 0,
+                cJSON_IsNumber(j_yc)      ? j_yc->valueint      : 0,
+                cJSON_IsNumber(j_rc)      ? j_rc->valueint      : 0
+            );
+        }
     }
     return SP_SUCCESS;
 }

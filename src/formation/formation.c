@@ -14,21 +14,19 @@
  * - Display formations in a tactical view
  * 
  * Functions are ordered by their command ID in parser.c:
- * - ID 1: new (new_formation)
- * - ID 2: newP (new_player)
- * - ID 3: preference (preferences)
- * - ID 4: add (add_position_to_formation)
- * - ID 5: addP (add_player_to_position)
- * - ID 6: remove (remove_position_from_formation)
- * - ID 7: removeP (remove_player_from_position)
- * - ID 8: list (list_players_of_position)
- * - ID 9: listf (list_formations)
- * - ID 10: open (open_formation)
- * - ID 11: show (show)
- * - ID 12: deletef (remove_formation)
- * - ID 13: deleteP (remove_player)
- * - ID 14: save (transitions to saves menu)
- * - ID 15: back (returns to main menu)
+ * - ID 1:  new (new_formation)
+ * - ID 2:  preference (preferences)
+ * - ID 3:  add (add_position_to_formation)
+ * - ID 4:  addP (add_player_to_position)
+ * - ID 5:  remove (remove_position_from_formation)
+ * - ID 6:  removeP (remove_player_from_position)
+ * - ID 7:  list (list_players_of_position)
+ * - ID 8:  listf (list_formations)
+ * - ID 9:  open (open_formation)
+ * - ID 10: show (show)
+ * - ID 11: deletef (delete_formation)
+ * - ID 12: save (transitions to saves menu)
+ * - ID 13: back (returns to squad menu)
  *
  * Data Structures:
  * - Formations are stored as a linked list (formation_head)
@@ -825,6 +823,7 @@ formation* get_formation_head(void) {
 int create_player_direct(const char* name, int age,
                          int overall, int potential, int own) {
     if (!name) return SP_ERR_NULL_PTR;
+    if (!current_squad) return SP_ERR_NO_SQUAD;
 
     /* Check for duplicate */
     if (find_player_by_name((char*)name)) {
@@ -839,16 +838,34 @@ int create_player_direct(const char* name, int age,
     new_p->overall_rating = overall;
     new_p->potential_rating = potential;
     new_p->own_rating = own;
+    new_p->stats.goals = 0;
+    new_p->stats.assists = 0;
+    new_p->stats.appearances = 0;
+    new_p->stats.yellow_cards = 0;
+    new_p->stats.red_cards = 0;
     new_p->next = NULL;
 
     /* Append to player list */
-    if (!current_squad || !current_squad->players) {
+    if (!current_squad->players) {
         current_squad->players = new_p;
     } else {
         player* cur = current_squad->players;
         while (cur->next) cur = cur->next;
         cur->next = new_p;
     }
+    return SP_SUCCESS;
+}
+
+int set_player_stats_direct(const char* name, int goals, int assists,
+                             int appearances, int yellow_cards, int red_cards) {
+    if (!name) return SP_ERR_NULL_PTR;
+    player* p = find_player_by_name(name);
+    if (!p) return SP_ERR_PLAYER_NOT_FOUND;
+    p->stats.goals        = goals;
+    p->stats.assists      = assists;
+    p->stats.appearances  = appearances;
+    p->stats.yellow_cards = yellow_cards;
+    p->stats.red_cards    = red_cards;
     return SP_SUCCESS;
 }
 

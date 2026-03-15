@@ -7,15 +7,16 @@
 #include "../error/error.h"
 
 /**
-* @brief Valid commands in the player menu context.
+ * @brief Valid commands in the player menu context.
  * 
- * Index 0: help   - Display player menu help
- * Index 1: newP   - Create a new player
- * Index 2: openP  - Open an existing player for editing (not yet implemented)
- * Index 3: list   - List all players
- * Index 4: deleteP- Remove an existing player
- * Index 5: save   - Save current player data (transitions to saves menu)
- * Index 6: back   - Return to squad menu
+ * Index 0: help    - Display player menu help
+ * Index 1: newP    - Create a new player
+ * Index 2: openP   - Open an existing player
+ * Index 3: list    - List all players
+ * Index 4: deleteP - Remove an existing player
+ * Index 5: editP   - Edit an existing player's attributes or stats
+ * Index 6: save    - Save current player data (transitions to saves menu)
+ * Index 7: back    - Return to squad menu
  */
 
 static Squad* current_squad = NULL;  /**< Pointer to the currently active squad being edited */
@@ -82,10 +83,12 @@ void cleanup_player(player* current) {
  *             All ratings should be 0-100, age > 0
  */
 int new_player(char** args, char** options) {
+    if (!current_squad) {
+        return SP_ERR_NO_SQUAD;  /* No squad currently open */
+    }
     if (find_player_by_name(args[0]) != NULL) {
         return SP_ERR_PLAYER_EXISTS;  /* Player with this name already exists */
     }
-    printf("Adding player: %s\n", args[0]);
     player* new_p = malloc(sizeof(player));
     if (!new_p) {
         return SP_ERR_MEMORY;
@@ -97,14 +100,15 @@ int new_player(char** args, char** options) {
     }
     
     /* Parse player attributes from string arguments */
-    char *endptr;
-    int age = strtol(args[1], &endptr, 10);
-    int overall = strtol(args[2], &endptr, 10);
-    int potential = strtol(args[3], &endptr, 10);
-    int own = strtol(args[4], &endptr, 10);
+    char *age_endptr, *overall_endptr, *potential_endptr, *own_endptr;
+    int age       = strtol(args[1], &age_endptr,       10);
+    int overall   = strtol(args[2], &overall_endptr,   10);
+    int potential = strtol(args[3], &potential_endptr, 10);
+    int own       = strtol(args[4], &own_endptr,       10);
 
-    if (endptr == args[1] || endptr == args[2] || endptr == args[3] || endptr == args[4]) {
-        // invalid integer conversion for one of the arguments
+    if (age_endptr == args[1] || overall_endptr == args[2] ||
+        potential_endptr == args[3] || own_endptr == args[4]) {
+        /* invalid integer conversion for one of the arguments */
         free(new_p->name);
         free(new_p);
         return SP_ERR_INTERNAL;  /* Conversion error */
@@ -121,9 +125,14 @@ int new_player(char** args, char** options) {
     new_p->overall_rating = overall;
     new_p->potential_rating = potential;
     new_p->own_rating = own;
+    new_p->stats.goals = 0;
+    new_p->stats.assists = 0;
+    new_p->stats.appearances = 0;
+    new_p->stats.yellow_cards = 0;
+    new_p->stats.red_cards = 0;
 
     /* Add to end of player list */
-    player* current = current_squad ? current_squad->players : NULL;  /* Add to current squad's player list */
+    player* current = current_squad->players;
     if (!current) {
         current_squad->players = new_p;
     } else {
@@ -267,10 +276,33 @@ int edit_player(char** args, char** options) {
             return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
         }
         p->own_rating = new_value;
+    } else if (strcmp(attribute, "goals") == 0) {
+        if (new_value < 0) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        p->stats.goals = new_value;
+    } else if (strcmp(attribute, "assists") == 0) {
+        if (new_value < 0) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        p->stats.assists = new_value;
+    } else if (strcmp(attribute, "appearances") == 0) {
+        if (new_value < 0) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        p->stats.appearances = new_value;
+    } else if (strcmp(attribute, "yellow_cards") == 0) {
+        if (new_value < 0) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        p->stats.yellow_cards = new_value;
+    } else if (strcmp(attribute, "red_cards") == 0) {
+        if (new_value < 0) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        p->stats.red_cards = new_value;
     } else {
         return SP_ERR_INVALID_CMD;  /* Invalid attribute */
     }
     return SP_SUCCESS;
 }
-
-//int list_players();

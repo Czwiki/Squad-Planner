@@ -45,6 +45,8 @@ void cleanup_player(player* current);
 
 int new_player(char** args, char** options);
 
+int open_player(char** args, char** options);
+
 int list_players(void);
 
 int delete_player(char** args, char** options);

@@ -33,38 +33,37 @@ int get_current_formation_name(char* dest);
 /* ID 1: new - Create a new formation */
 int new_formation(char** args, char** options);
 
-/* ID 3: preference - Adjust player preferences in a position */
+/* ID 2: preference - Adjust player preferences in a position */
 int preferences(char** args, char** options);
 
-/* ID 4: add - Add positions to the formation */
+/* ID 3: add - Add positions to the formation */
 int add_position_to_formation(char** args, char** options);
 
-/* ID 5: addP - Add a player to a position */
+/* ID 4: addP - Add an existing player to a position */
 int add_player_to_position(char** args, char** options);
 
-/* ID 6: remove - Remove a position from the formation */
+/* ID 5: remove - Remove a position from the formation */
 int remove_position_from_formation(char** args, char** options);
 
-/* ID 7: removeP - Remove a player from a position */
+/* ID 6: removeP - Remove a player from a position */
 int remove_player_from_position(char** args, char** options);
 
-/* ID 8: list - List players assigned to a position */
+/* ID 7: list - List players assigned to a position */
 int list_players_of_position(char** args, char** options);
 
-/* ID 9: listf - List all formations */
+/* ID 8: listf - List all formations */
 int list_formations(char** options);
 
-/* ID 10: open - Open an existing formation */
+/* ID 9: open - Open an existing formation */
 int open_formation(char** args, char** options);
 
-/* ID 11: show - Display the formation in tactical view */
+/* ID 10: show - Display the formation in tactical view */
 int show(char** options);
 
-/* ID 12: deletef - Remove an existing formation */
+/* ID 11: deletef - Remove an existing formation */
 int delete_formation(char** args, char** options);
 
-/* Cleanup function - frees all formations and players */
-void cleanup_all(void);
+/* Cleanup: frees all formations in the current squad */
 void cleanup_formation(formation* current);
 int get_pos_size_of_list(char* arg);
 
@@ -108,6 +107,14 @@ formation* get_formation_head(void);
  */
 int create_player_direct(const char* name, int age,
                          int overall, int potential, int own);
+
+/**
+ * @brief Set statistics on an existing player directly (used by persistence load).
+ *
+ * @return SP_SUCCESS, SP_ERR_PLAYER_NOT_FOUND
+ */
+int set_player_stats_direct(const char* name, int goals, int assists,
+                             int appearances, int yellow_cards, int red_cards);
 
 /**
  * @brief Create a formation directly from a name.
