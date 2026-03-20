@@ -10,13 +10,13 @@ CFLAGS = -pedantic -Wall -Werror
 OBJS = main.o parser.o exec.o help.o formation.o error.o persistence.o cJSON.o squad.o player.o
 
 main_run: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o main -lm
+	$(CC) $(CFLAGS) $(OBJS) -o Squad_Planner -lm
 	rm -f $(OBJS)
-	./main
-	rm -f main
+	./Squad_Planner
+	rm -f Squad_Planner
 
 main: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o main -lm
+	$(CC) $(CFLAGS) $(OBJS) -o Squad_Planner -lm
 	rm -f $(OBJS)
 
 exec.o: src/exec/exec.c formation.o persistence.o
@@ -51,6 +51,6 @@ player.o: src/player/player.c
 
 clean:
 	rm -f $(OBJS)
-	rm -f main
+	rm -f Squad_Planner
 
 .PHONY: clean
