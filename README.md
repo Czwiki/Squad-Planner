@@ -12,6 +12,8 @@ A command-line tool for planning and managing soccer squad formations. Create ta
 - **Preference Ranking**: Rank players within each position for rotation planning
 - **Persistence**: Save and load all data to/from a JSON file
 
+Feature proposals and roadmap ideas are maintained in `FEATURE_PROPOSALS.md`.
+
 ## Building
 
 ```bash
@@ -37,6 +39,8 @@ squad-planner - player>                ← player menu
 squad-planner - 'Messi' player>        ← player editing sub-menu
 squad-planner - saves>                 ← saves menu
 ```
+
+Input limit: each command line supports up to **199 characters** (`MAX_INPUT_SIZE = 200`, including newline terminator handling).
 
 ### Navigation Overview
 
@@ -133,9 +137,10 @@ Prompt: `squad-planner - '<name>' player>`
 | `show`                  | Display all attributes and statistics of the open player                     |
 | `set <attr> <value>`    | Set a base attribute: `age`, `overall`, `potential`, `own`                   |
 | `add <stat> [amount]`   | **Increment** a statistic by `amount` (default: 1); amount must be positive  |
+| `subtract <stat> [amount]` | **Decrement** a statistic by `amount` (default: 1); value cannot drop below 0 |
 | `back`                  | Return to player menu                                                        |
 
-Valid stats for `add`: `goals`, `assists`, `appearances`, `yellow_cards`, `red_cards`.
+Valid stats for `add`/`subtract`: `goals`, `assists`, `appearances`, `yellow_cards`, `red_cards`.
 
 ---
 
@@ -146,8 +151,8 @@ Prompt: `squad-planner - saves>`
 | Command             | Description                                  |
 |---------------------|----------------------------------------------|
 | `help`              | Display saves menu help                      |
-| `save [filename]`   | Save all data to file (default: `data.json`) |
-| `load [filename]`   | Load all data from file                      |
+| `save [filename]`   | Save all data to file (default: `squad_planner_data.json`) |
+| `load [filename]`   | Load all data from file (default: `squad_planner_data.json`) |
 | `back`              | Return to main menu                          |
 
 ---

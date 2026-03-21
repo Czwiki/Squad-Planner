@@ -408,7 +408,7 @@ int add_player_stat(char** args, char** options) {
         char *endptr;
         amount = strtol(args[1], &endptr, 10);
         if (endptr == args[1]) {
-            return SP_ERR_INTERNAL;
+            return SP_ERR_INVALID_RANGE;
         }
         if (amount <= 0) {
             return SP_ERR_INVALID_RANGE;  /* Increment must be positive */
@@ -428,5 +428,51 @@ int add_player_stat(char** args, char** options) {
     } else {
         return SP_ERR_INVALID_CMD;
     }
+    return SP_SUCCESS;
+}
+
+/**
+ * @brief Decrement a statistic of the currently open player.
+ *
+ * @param args Array: [0]=stat name, [1]=amount to subtract (optional, defaults to 1)
+ *             Valid stats: goals, assists, appearances, yellow_cards, red_cards
+ * @return SP_SUCCESS on success, appropriate error code on failure
+ */
+int subtract_player_stat(char** args, char** options) {
+    if (!current_player) {
+        return SP_ERR_PLAYER_NOT_FOUND;
+    }
+    char* stat = args[0];
+    int amount = 1;  /* Default decrement */
+    if (args[1]) {
+        char *endptr;
+        amount = strtol(args[1], &endptr, 10);
+        if (endptr == args[1]) {
+            return SP_ERR_INVALID_RANGE;
+        }
+        if (amount <= 0) {
+            return SP_ERR_INVALID_RANGE;  /* Decrement must be positive */
+        }
+    }
+
+    int* target = NULL;
+    if (strcmp(stat, "goals") == 0) {
+        target = &current_player->stats.goals;
+    } else if (strcmp(stat, "assists") == 0) {
+        target = &current_player->stats.assists;
+    } else if (strcmp(stat, "appearances") == 0) {
+        target = &current_player->stats.appearances;
+    } else if (strcmp(stat, "yellow_cards") == 0) {
+        target = &current_player->stats.yellow_cards;
+    } else if (strcmp(stat, "red_cards") == 0) {
+        target = &current_player->stats.red_cards;
+    } else {
+        return SP_ERR_INVALID_CMD;
+    }
+
+    if (*target - amount < 0) {
+        return SP_ERR_INVALID_RANGE;
+    }
+    *target -= amount;
     return SP_SUCCESS;
 }

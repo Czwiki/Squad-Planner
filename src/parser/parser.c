@@ -48,7 +48,7 @@ static char* command_inputs_main[3] = {"help", "squad", "load"};
  * Index 2: list       - List all squads
  * Index 3: open       - Open an existing squad
  * Index 4: formation   - Enter the formation menu
- * Index 5: players     - Enter the player menu (not yet implemented)
+ * Index 5: players     - Enter the player menu
  * Index 6: back        - Return to main menu
  * Index 7: save        - Save current squad data (transitions to saves menu)
  */
@@ -100,10 +100,11 @@ static char* command_inputs_player[8] = {"help", "newP", "openP", "list", "delet
  * Index 0: help - Display player editing help
  * Index 1: show - Display all attributes and statistics of the current player
  * Index 2: set  - Set a base attribute of the current player
- * Index 3: add  - Increment a statistic of the current player
- * Index 4: back - Return to player menu
+ * Index 3: add      - Increment a statistic of the current player
+ * Index 4: subtract - Decrement a statistic of the current player
+ * Index 5: back     - Return to player menu
  */
-static char* command_inputs_player_edit[5] = {"help", "show", "set", "add", "back"};
+static char* command_inputs_player_edit[6] = {"help", "show", "set", "add", "subtract", "back"};
 
 /**
  * @brief Valid commands in the saves menu context.
@@ -184,7 +185,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
             break;
         case 5:  /* Player editing sub-menu context */
             command_inputs = command_inputs_player_edit;
-            length = 5;
+            length = 6;
             break;
         default:
             free(buffer);
@@ -275,7 +276,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                             }
                             break;
                         case 5:  /* Player editing sub-menu */
-                            if (i == 4) {
+                            if (i == 5) {
                                 new_context = 3;  /* 'back' -> return to player menu */
                             }
                             break;
