@@ -6,8 +6,8 @@
    - Document input length limit (`MAX_INPUT_SIZE = 200`)
 2. **Clearer error messages**
    - Provide more specific guidance for invalid command usage (e.g., missing parameters)
-3. **Player statistics correction**
-   - Add `set`/`subtract` for stats in player sub-menu (currently only incremental `add`)
+3. **Player statistics correction (partially completed)**
+   - `subtract` is implemented; add direct stat `set` only if future workflows need it
 
 ## Mid-term (moderate effort)
 4. **Safer load behavior**

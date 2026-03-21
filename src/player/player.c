@@ -408,7 +408,7 @@ int add_player_stat(char** args, char** options) {
         char *endptr;
         amount = strtol(args[1], &endptr, 10);
         if (endptr == args[1]) {
-            return SP_ERR_INTERNAL;
+            return SP_ERR_INVALID_RANGE;
         }
         if (amount <= 0) {
             return SP_ERR_INVALID_RANGE;  /* Increment must be positive */
@@ -448,7 +448,7 @@ int subtract_player_stat(char** args, char** options) {
         char *endptr;
         amount = strtol(args[1], &endptr, 10);
         if (endptr == args[1]) {
-            return SP_ERR_INTERNAL;
+            return SP_ERR_INVALID_RANGE;
         }
         if (amount <= 0) {
             return SP_ERR_INVALID_RANGE;  /* Decrement must be positive */
