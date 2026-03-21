@@ -12,41 +12,41 @@ A command-line tool for planning and managing soccer squad formations. Create ta
 - **Preference Ranking**: Rank players within each position for rotation planning
 - **Persistence**: Save and load all data to/from a JSON file
 
-## Aktueller Funktionsstand (verifiziert)
+## Current Functionality Status (Verified)
 
-- ✅ Build funktioniert aktuell mit `make main`
-- ✅ Navigation über alle Menüs funktioniert: `main → squad → formation / players → player editing → saves`
-- ✅ Kaderverwaltung: `new`, `open`, `list` im Squad-Menü
-- ✅ Formationsverwaltung: `new`, `open`, `add/remove`, `addP/removeP`, `list`, `preference`, `show`, `deletef`
-- ✅ Spielerverwaltung: `newP`, `openP`, `list`, `deleteP`, `editP` sowie Untermenü `show/set/add`
-- ✅ Persistenz: `save`/`load` inkl. optionalem Dateinamen
+- ✅ Build currently works with `make main`
+- ✅ Navigation across all menus works: `main → squad → formation / players → player editing → saves`
+- ✅ Squad management: `new`, `open`, `list` in squad menu
+- ✅ Formation management: `new`, `open`, `add/remove`, `addP/removeP`, `list`, `preference`, `show`, `deletef`
+- ✅ Player management: `newP`, `openP`, `list`, `deleteP`, `editP` and sub-menu `show/set/add`
+- ✅ Persistence: `save`/`load` including optional filename
 
-## Überlegung: neue bzw. zu überarbeitende Features
+## Proposed New or Rework Features
 
-### Quick Wins (kleiner Aufwand, hoher Nutzen)
-1. **README-/UX-Konsistenz**
-   - Standard-Dateiname konsistent dokumentieren (aktuell `squad_planner_data.json`)
-   - Eingabelimit (`MAX_INPUT_SIZE = 200`) transparent dokumentieren
-2. **Bessere Fehlertexte**
-   - Bei falscher Nutzung von Befehlen präzisere Hinweise (z. B. konkrete fehlende Parameter)
-3. **Korrektur von Spielerstatistiken**
-   - Ergänzung um `set`/`subtract` für Stats im Player-Untermenü (aktuell nur inkrementelles `add`)
+### Quick Wins (low effort, high impact)
+1. **README/UX consistency**
+   - Keep default filename documentation consistent (`squad_planner_data.json`)
+   - Document input length limit (`MAX_INPUT_SIZE = 200`)
+2. **Clearer error messages**
+   - Provide more specific guidance for invalid command usage (e.g., missing parameters)
+3. **Player statistics correction**
+   - Add `set`/`subtract` for stats in player sub-menu (currently only incremental `add`)
 
-### Mittelfristig (mittlerer Aufwand)
-4. **Sicheres Laden**
-   - Warnung vor Überschreiben beim `load` oder optionaler Merge-Modus
-5. **Spielersuche/Filter**
-   - Suche nach Name, Rating-Bereich, Alter etc. für größere Kader
-6. **Verbesserte Datenpflege**
-   - Zusätzliche Validierungen/Feedback bei `preference` und Massenoperationen
+### Mid-term (moderate effort)
+4. **Safer load behavior**
+   - Warn before overwrite on `load`, or add an optional merge mode
+5. **Player search/filter**
+   - Search by name, rating range, age, etc. for larger squads
+6. **Improved data maintenance**
+   - Better validation/feedback for `preference` and bulk operations
 
-### Größere Erweiterungen (strategisch)
-7. **Export-Funktionen**
-   - CSV/TXT-Export für Kader, Formation und Statistiken
-8. **Undo/Redo**
-   - Rückgängig für kritische Änderungen (Löschen, Überschreiben)
-9. **Vergleichsansichten**
-   - Vergleich von Formationen oder Kadern innerhalb eines Vereins
+### Larger strategic improvements
+7. **Export capabilities**
+   - CSV/TXT export for squads, formations, and statistics
+8. **Undo/redo**
+   - Roll back critical changes (deletions, overwrites)
+9. **Comparison views**
+   - Compare formations or squads within a club
 
 ## Building
 
