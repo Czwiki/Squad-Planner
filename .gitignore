@@ -8,3 +8,5 @@ main
 
 # CodeQL artifacts
 _codeql*
+# Executable
+Squad_Planner

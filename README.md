@@ -12,6 +12,42 @@ A command-line tool for planning and managing soccer squad formations. Create ta
 - **Preference Ranking**: Rank players within each position for rotation planning
 - **Persistence**: Save and load all data to/from a JSON file
 
+## Aktueller Funktionsstand (verifiziert)
+
+- ✅ Build funktioniert aktuell mit `make main`
+- ✅ Navigation über alle Menüs funktioniert: `main → squad → formation / players → player editing → saves`
+- ✅ Kaderverwaltung: `new`, `open`, `list` im Squad-Menü
+- ✅ Formationsverwaltung: `new`, `open`, `add/remove`, `addP/removeP`, `list`, `preference`, `show`, `deletef`
+- ✅ Spielerverwaltung: `newP`, `openP`, `list`, `deleteP`, `editP` sowie Untermenü `show/set/add`
+- ✅ Persistenz: `save`/`load` inkl. optionalem Dateinamen
+
+## Überlegung: neue bzw. zu überarbeitende Features
+
+### Quick Wins (kleiner Aufwand, hoher Nutzen)
+1. **README-/UX-Konsistenz**
+   - Standard-Dateiname konsistent dokumentieren (aktuell `squad_planner_data.json`)
+   - Eingabelimit (`MAX_INPUT_SIZE = 200`) transparent dokumentieren
+2. **Bessere Fehlertexte**
+   - Bei falscher Nutzung von Befehlen präzisere Hinweise (z. B. konkrete fehlende Parameter)
+3. **Korrektur von Spielerstatistiken**
+   - Ergänzung um `set`/`subtract` für Stats im Player-Untermenü (aktuell nur inkrementelles `add`)
+
+### Mittelfristig (mittlerer Aufwand)
+4. **Sicheres Laden**
+   - Warnung vor Überschreiben beim `load` oder optionaler Merge-Modus
+5. **Spielersuche/Filter**
+   - Suche nach Name, Rating-Bereich, Alter etc. für größere Kader
+6. **Verbesserte Datenpflege**
+   - Zusätzliche Validierungen/Feedback bei `preference` und Massenoperationen
+
+### Größere Erweiterungen (strategisch)
+7. **Export-Funktionen**
+   - CSV/TXT-Export für Kader, Formation und Statistiken
+8. **Undo/Redo**
+   - Rückgängig für kritische Änderungen (Löschen, Überschreiben)
+9. **Vergleichsansichten**
+   - Vergleich von Formationen oder Kadern innerhalb eines Vereins
+
 ## Building
 
 ```bash
@@ -146,8 +182,8 @@ Prompt: `squad-planner - saves>`
 | Command             | Description                                  |
 |---------------------|----------------------------------------------|
 | `help`              | Display saves menu help                      |
-| `save [filename]`   | Save all data to file (default: `data.json`) |
-| `load [filename]`   | Load all data from file                      |
+| `save [filename]`   | Save all data to file (default: `squad_planner_data.json`) |
+| `load [filename]`   | Load all data from file (default: `squad_planner_data.json`) |
 | `back`              | Return to main menu                          |
 
 ---

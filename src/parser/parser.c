@@ -48,7 +48,7 @@ static char* command_inputs_main[3] = {"help", "squad", "load"};
  * Index 2: list       - List all squads
  * Index 3: open       - Open an existing squad
  * Index 4: formation   - Enter the formation menu
- * Index 5: players     - Enter the player menu (not yet implemented)
+ * Index 5: players     - Enter the player menu
  * Index 6: back        - Return to main menu
  * Index 7: save        - Save current squad data (transitions to saves menu)
  */
