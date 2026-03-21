@@ -12,15 +12,6 @@ A command-line tool for planning and managing soccer squad formations. Create ta
 - **Preference Ranking**: Rank players within each position for rotation planning
 - **Persistence**: Save and load all data to/from a JSON file
 
-## Current Functionality Status (Verified)
-
-- ✅ Build currently works with `make main`
-- ✅ Navigation across all menus works: `main → squad → formation / players → player editing → saves`
-- ✅ Squad management: `new`, `open`, `list` in squad menu
-- ✅ Formation management: `new`, `open`, `add/remove`, `addP/removeP`, `list`, `preference`, `show`, `deletef`
-- ✅ Player management: `newP`, `openP`, `list`, `deleteP`, `editP` and sub-menu `show/set/add/subtract`
-- ✅ Persistence: `save`/`load` including optional filename
-
 Feature proposals and roadmap ideas are maintained in `FEATURE_PROPOSALS.md`.
 
 ## Building

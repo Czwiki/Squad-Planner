@@ -43,7 +43,7 @@ int print_help_page_squad(void) {
     printf("6. players   - Enter the player menu\n");
     printf("7. back      - Return to main menu\n");
     printf("8. save      - Save current data (transitions to saves menu)\n");
-    printf("For help on explicit commands, type '<command> --help'\n");
+    printf("For detailed command usage, use '<command> --help'.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
         return SP_ERR_INTERNAL;
@@ -78,7 +78,7 @@ int print_help_page_formation(void) {
     printf("13. save       - Save data (transitions to saves menu)\n");
     printf("14. back       - Return to the squad menu\n");
     printf("To create, edit, or delete players, use the player menu ('players' command in squad menu).\n");
-    printf("For help on explicit commands, type '<command> --help'\n");
+    printf("For detailed command usage, use '<command> --help'.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
         return SP_ERR_INTERNAL;
@@ -99,7 +99,7 @@ int print_help_page_player(void) {
     printf("7. save    - Save current data (transitions to saves menu)\n");
     printf("8. back    - Return to squad menu\n");
     printf("To edit statistics use 'openP' to enter the player editing sub-menu.\n");
-    printf("For help on explicit commands, type '<command> --help'\n");
+    printf("For detailed command usage, use '<command> --help'.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
         return SP_ERR_INTERNAL;
@@ -114,17 +114,10 @@ int print_help_page_player_edit(void) {
     printf("1. help - Display this help page\n");
     printf("2. show - Display all attributes and statistics of the current player\n");
     printf("3. set  - Set a base attribute of the current player\n");
-    printf("          Usage: set <attribute> <value>\n");
-    printf("          Attributes: age, overall, potential, own\n");
     printf("4. add  - Increment a statistic of the current player\n");
-    printf("          Usage: add <stat> [amount]  (amount defaults to 1)\n");
-    printf("          Stats: goals, assists, appearances, yellow_cards, red_cards\n");
     printf("5. subtract - Decrement a statistic of the current player\n");
-    printf("          Usage: subtract <stat> [amount]  (amount defaults to 1)\n");
-    printf("          Stats: goals, assists, appearances, yellow_cards, red_cards\n");
-    printf("          Note: values cannot go below 0\n");
     printf("6. back - Return to player menu\n");
-    printf("For help on explicit commands, type '<command> --help'\n");
+    printf("For detailed command usage, use '<command> --help'.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
         return SP_ERR_INTERNAL;
@@ -144,10 +137,10 @@ int print_help_page_saves(void) {
     printf("-------------------\n");
     printf("Available commands in the saves menu:\n");
     printf("1. help - Display this help\n");
-    printf("2. save [filename] - Save data\n");
-    printf("3. load [filename] - Load data\n");
+    printf("2. save - Save data\n");
+    printf("3. load - Load data\n");
     printf("4. back - Return to main menu\n");
-    printf("For help on explicit commands, type '<command> --help'\n");
+    printf("For detailed command usage, use '<command> --help'.\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");
         return SP_ERR_INTERNAL;

@@ -1,13 +1,12 @@
 # Feature Proposals
 
 ## Quick Wins (low effort, high impact)
-1. **README/UX consistency**
-   - Keep default filename documentation consistent (`squad_planner_data.json`)
-   - Document input length limit (`MAX_INPUT_SIZE = 200`)
-2. **Clearer error messages**
-   - Provide more specific guidance for invalid command usage (e.g., missing parameters)
-3. **Player statistics correction (partially completed)**
-   - `subtract` is implemented; add direct stat `set` only if future workflows need it
+1. **Player statistics completion**
+   - Add `set` for statistics in player sub-menu (currently `add`/`subtract`)
+2. **Clearer wrong-usage details**
+   - Keep generic error short but include command-specific guidance in each `--help` page
+3. **Input robustness**
+   - Consider graceful handling for oversized input by showing command-specific hints per context
 
 ## Mid-term (moderate effort)
 4. **Safer load behavior**
