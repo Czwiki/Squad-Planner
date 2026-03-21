@@ -18,35 +18,10 @@ A command-line tool for planning and managing soccer squad formations. Create ta
 - ✅ Navigation across all menus works: `main → squad → formation / players → player editing → saves`
 - ✅ Squad management: `new`, `open`, `list` in squad menu
 - ✅ Formation management: `new`, `open`, `add/remove`, `addP/removeP`, `list`, `preference`, `show`, `deletef`
-- ✅ Player management: `newP`, `openP`, `list`, `deleteP`, `editP` and sub-menu `show/set/add`
+- ✅ Player management: `newP`, `openP`, `list`, `deleteP`, `editP` and sub-menu `show/set/add/subtract`
 - ✅ Persistence: `save`/`load` including optional filename
 
-## Proposed New or Rework Features
-
-### Quick Wins (low effort, high impact)
-1. **README/UX consistency**
-   - Keep default filename documentation consistent (`squad_planner_data.json`)
-   - Document input length limit (`MAX_INPUT_SIZE = 200`)
-2. **Clearer error messages**
-   - Provide more specific guidance for invalid command usage (e.g., missing parameters)
-3. **Player statistics correction**
-   - Add `set`/`subtract` for stats in player sub-menu (currently only incremental `add`)
-
-### Mid-term (moderate effort)
-4. **Safer load behavior**
-   - Warn before overwrite on `load`, or add an optional merge mode
-5. **Player search/filter**
-   - Search by name, rating range, age, etc. for larger squads
-6. **Improved data maintenance**
-   - Better validation/feedback for `preference` and bulk operations
-
-### Larger strategic improvements
-7. **Export capabilities**
-   - CSV/TXT export for squads, formations, and statistics
-8. **Undo/redo**
-   - Roll back critical changes (deletions, overwrites)
-9. **Comparison views**
-   - Compare formations or squads within a club
+Feature proposals and roadmap ideas are maintained in `FEATURE_PROPOSALS.md`.
 
 ## Building
 
@@ -73,6 +48,8 @@ squad-planner - player>                ← player menu
 squad-planner - 'Messi' player>        ← player editing sub-menu
 squad-planner - saves>                 ← saves menu
 ```
+
+Input limit: each command line supports up to **199 characters** (`MAX_INPUT_SIZE = 200`, including newline terminator handling).
 
 ### Navigation Overview
 
@@ -169,9 +146,10 @@ Prompt: `squad-planner - '<name>' player>`
 | `show`                  | Display all attributes and statistics of the open player                     |
 | `set <attr> <value>`    | Set a base attribute: `age`, `overall`, `potential`, `own`                   |
 | `add <stat> [amount]`   | **Increment** a statistic by `amount` (default: 1); amount must be positive  |
+| `subtract <stat> [amount]` | **Decrement** a statistic by `amount` (default: 1); value cannot drop below 0 |
 | `back`                  | Return to player menu                                                        |
 
-Valid stats for `add`: `goals`, `assists`, `appearances`, `yellow_cards`, `red_cards`.
+Valid stats for `add`/`subtract`: `goals`, `assists`, `appearances`, `yellow_cards`, `red_cards`.
 
 ---
 

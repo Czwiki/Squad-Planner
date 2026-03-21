@@ -154,9 +154,9 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             }
             ret_val = to_formation();
             break;
-        case 5: /* players command is currently a placeholder for future expansion */
+        case 5: /* players */
             usage = "players [--help]";
-            description = "Enters the player menu for the current squad. This menu is under development and will allow you to manage your player roster in future updates.";
+            description = "Enters the player menu for the current squad.";
             sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
                 if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
@@ -520,7 +520,22 @@ static int exec_player_edit_command(int cmd_id, char **args, char **options) {
             }
             ret_val = add_player_stat(args, options);
             break;
-        case 4:  /* back – handled via context switch */
+        case 4:  /* subtract */
+            if (!args && !options) {
+                ret_val = SP_ERR_WRONG_USAGE;
+                break;
+            }
+            usage = "subtract <stat> [amount] [--help]";
+            description = "Decrements a statistic of the currently open player by the given amount (default: 1). Valid stats: goals, assists, appearances, yellow_cards, red_cards. Values cannot go below 0.";
+            sanity_check = sanity_check_and_help(args, options, 2, 1, 1, 0, usage, description);
+            if (sanity_check != 0) {
+                if (sanity_check == 1) ret_val = SP_SUCCESS;
+                else ret_val = sanity_check;
+                break;
+            }
+            ret_val = subtract_player_stat(args, options);
+            break;
+        case 5:  /* back – handled via context switch */
             break;
         default:
             break;

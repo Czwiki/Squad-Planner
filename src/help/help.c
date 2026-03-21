@@ -119,7 +119,11 @@ int print_help_page_player_edit(void) {
     printf("4. add  - Increment a statistic of the current player\n");
     printf("          Usage: add <stat> [amount]  (amount defaults to 1)\n");
     printf("          Stats: goals, assists, appearances, yellow_cards, red_cards\n");
-    printf("5. back - Return to player menu\n");
+    printf("5. subtract - Decrement a statistic of the current player\n");
+    printf("          Usage: subtract <stat> [amount]  (amount defaults to 1)\n");
+    printf("          Stats: goals, assists, appearances, yellow_cards, red_cards\n");
+    printf("          Note: values cannot go below 0\n");
+    printf("6. back - Return to player menu\n");
     printf("For help on explicit commands, type '<command> --help'\n");
     if (fflush(stdout) != 0) {
         perror("Error flushing stdout: ");

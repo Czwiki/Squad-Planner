@@ -61,4 +61,6 @@ int set_player_attr(char** args, char** options);
 
 int add_player_stat(char** args, char** options);
 
+int subtract_player_stat(char** args, char** options);
+
 #endif /* PLAYER_H */

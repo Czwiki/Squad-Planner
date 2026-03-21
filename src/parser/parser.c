@@ -100,10 +100,11 @@ static char* command_inputs_player[8] = {"help", "newP", "openP", "list", "delet
  * Index 0: help - Display player editing help
  * Index 1: show - Display all attributes and statistics of the current player
  * Index 2: set  - Set a base attribute of the current player
- * Index 3: add  - Increment a statistic of the current player
- * Index 4: back - Return to player menu
+ * Index 3: add      - Increment a statistic of the current player
+ * Index 4: subtract - Decrement a statistic of the current player
+ * Index 5: back     - Return to player menu
  */
-static char* command_inputs_player_edit[5] = {"help", "show", "set", "add", "back"};
+static char* command_inputs_player_edit[6] = {"help", "show", "set", "add", "subtract", "back"};
 
 /**
  * @brief Valid commands in the saves menu context.
@@ -184,7 +185,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
             break;
         case 5:  /* Player editing sub-menu context */
             command_inputs = command_inputs_player_edit;
-            length = 5;
+            length = 6;
             break;
         default:
             free(buffer);
@@ -275,7 +276,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
                             }
                             break;
                         case 5:  /* Player editing sub-menu */
-                            if (i == 4) {
+                            if (i == 5) {
                                 new_context = 3;  /* 'back' -> return to player menu */
                             }
                             break;
