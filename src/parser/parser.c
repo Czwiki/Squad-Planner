@@ -87,12 +87,11 @@ static char* command_inputs_formation[14] = {
  * Index 2: openP   - Open an existing player (enters player editing sub-menu)
  * Index 3: list    - List all players
  * Index 4: deleteP - Remove an existing player
- * Index 5: editP   - Quick-edit a player's base attributes
- * Index 6: save    - Save current player data (transitions to saves menu)
- * Index 7: back    - Return to squad menu
+ * Index 5: save    - Save current player data (transitions to saves menu)
+ * Index 6: back    - Return to squad menu
  */
 
-static char* command_inputs_player[8] = {"help", "newP", "openP", "list", "deleteP", "editP", "save", "back"};
+static char* command_inputs_player[7] = {"help", "newP", "openP", "list", "deleteP", "save", "back"};
 
 /**
  * @brief Valid commands in the player editing sub-menu context.
@@ -177,7 +176,7 @@ int parse_command(const char* line, int current_context, command* cmd) {
             break;
         case 3:  /* Player menu context */
             command_inputs = command_inputs_player;
-            length = 8;
+            length = 7;
             break;
         case 4:  /* Saves menu context */
             command_inputs = command_inputs_saves;
@@ -263,10 +262,10 @@ int parse_command(const char* line, int current_context, command* cmd) {
                             }
                             break;
                         case 3:  /* Player menu */
-                            if (i == 6) {
+                            if (i == 5) {
                                 new_context = 4;  /* 'save' -> enter saves menu */
                             }
-                            else if (i == 7) {
+                            else if (i == 6) {
                                 new_context = 1;  /* 'back' -> return to squad menu */
                             }
                             break;

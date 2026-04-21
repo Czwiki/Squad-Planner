@@ -449,21 +449,7 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
             }
             ret_val = delete_player(args, options);
             break;
-        case 5: /* editP */
-            if (!args && !options) {
-                ret_val = SP_ERR_WRONG_USAGE;
-                break;
-            }
-            usage = "editP <player_name> <attribute> <new_value> [--help]";
-            description = "Edits a base attribute of a player. Valid attributes: 'age', 'overall', 'potential', 'own'. To modify statistics use 'openP' to enter the player editing sub-menu and then use 'add'.";
-            sanity_check = sanity_check_and_help(args, options, 3, 3, 1, 0, usage, description);
-            if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
-                break;
-            }
-            ret_val = edit_player(args, options);
-            break;
+        /* editP removed: use 'openP' then 'set <attribute> <value>' */
         default:
             break;
     }

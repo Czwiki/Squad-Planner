@@ -50,9 +50,6 @@ int open_player(char** args, char** options);
 int list_players(void);
 
 int delete_player(char** args, char** options);
-
-int edit_player(char** args, char** options);
-
 int get_current_player_name(char* dest);
 
 int show_player(void);

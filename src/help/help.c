@@ -95,9 +95,8 @@ int print_help_page_player(void) {
     printf("3. openP   - Open an existing player (enters player editing sub-menu)\n");
     printf("4. list    - List all players\n");
     printf("5. deleteP - Remove an existing player\n");
-    printf("6. editP   - Quick-edit a player's base attributes (age, overall, potential, own)\n");
-    printf("7. save    - Save current data (transitions to saves menu)\n");
-    printf("8. back    - Return to squad menu\n");
+    printf("6. save    - Save current data (transitions to saves menu)\n");
+    printf("7. back    - Return to squad menu\n");
     printf("To edit statistics use 'openP' to enter the player editing sub-menu.\n");
     printf("For detailed command usage, use '<command> --help'.\n");
     if (fflush(stdout) != 0) {

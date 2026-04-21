@@ -14,7 +14,7 @@
  * Index 2: openP   - Open an existing player
  * Index 3: list    - List all players
  * Index 4: deleteP - Remove an existing player
- * Index 5: editP   - Quick-edit a player's base attributes (age, overall, potential, own)
+ * Index 5:        - (removed) quick-edit shortcut; use openP + set instead
  * Index 6: save    - Save current player data (transitions to saves menu)
  * Index 7: back    - Return to squad menu
  */
@@ -242,53 +242,7 @@ int delete_player(char** args, char** options) {
     return SP_SUCCESS;
 }
 
-int edit_player(char** args, char** options) {
-    player* p = find_player_by_name(args[0]);
-    if (!p) {
-        return SP_ERR_PLAYER_NOT_FOUND;  /* Player not found */
-    }
-    char* attribute = args[1];
-    char* new_value_str = args[2];
-    
-    char *endptr;
-    int new_value = strtol(new_value_str, &endptr, 10);
-    if (endptr == new_value_str) {
-        return SP_ERR_INTERNAL;  /* Conversion error */
-    }
-
-    if (strcmp(attribute, "age") == 0) {
-        if (new_value <= 0) {
-            return SP_ERR_INVALID_RANGE;  /* Age must be greater than 0 */
-        }
-        p->age = new_value;
-    } else if (strcmp(attribute, "overall") == 0) {
-        if (new_value < 0 || new_value > 100) {
-            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
-        }
-        p->overall_rating = new_value;
-    } else if (strcmp(attribute, "potential") == 0) {
-        if (new_value < 0 || new_value > 100) {
-            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
-        }
-        p->potential_rating = new_value;
-    } else if (strcmp(attribute, "own") == 0) {
-        if (new_value < 0 || new_value > 100) {
-            return SP_ERR_INVALID_RANGE;  /* Ratings must be between 0 and 100 */
-        }
-        p->own_rating = new_value;
-    } else if (strcmp(attribute, "goals") == 0 ||
-               strcmp(attribute, "assists") == 0 ||
-               strcmp(attribute, "appearances") == 0 ||
-               strcmp(attribute, "yellow_cards") == 0 ||
-               strcmp(attribute, "red_cards") == 0) {
-        /* Stats can only be incremented: use openP then 'add' inside the player editing menu */
-        printf("Stats cannot be set directly. Open the player with 'openP' and use 'add' to increment stats.\n");
-        return SP_ERR_INVALID_CMD;
-    } else {
-        return SP_ERR_INVALID_CMD;  /* Invalid attribute */
-    }
-    return SP_SUCCESS;
-}
+/* `edit_player` removed: use `openP` then `set` (handled by `set_player_attr`) */
 
 /**
  * @brief Get the name of the currently open player, with underscores replaced by spaces.

@@ -118,11 +118,10 @@ Prompt: `squad-planner - player>`
 | `openP <name>`                       | Open a player → enters the **player editing sub-menu**         |
 | `list`                               | List all players in the current squad                          |
 | `deleteP <name>`                     | Remove a player and clear them from all formation positions     |
-| `editP <name> <attr> <value>`        | Quick-edit a base attribute: `age`, `overall`, `potential`, `own` |
-| `save`                               | Save all data (enters saves menu)                              |
-| `back`                               | Return to squad menu                                           |
+| `save`                                | Save all data (enters saves menu)                              |
+| `back`                                | Return to squad menu                                           |
 
-> **Note:** Statistics (`goals`, `assists`, etc.) can **only** be changed via `openP` and the `add` command in the player editing sub-menu – they cannot be set directly with `editP`.
+> **Note:** Statistics (`goals`, `assists`, etc.) can **only** be changed via `openP` and the `add` command in the player editing sub-menu – they cannot be set directly except via the editing sub-menu.
 
 ---
 
@@ -200,8 +199,6 @@ squad-planner - '4-3-3' formation> back
 ```
 squad-planner - 'Dortmund' squad> players
 squad-planner - player> newP Messi 37 94 94 98
-Success
-squad-planner - player> editP Messi age 38
 Success
 squad-planner - player> openP Messi
 Success
