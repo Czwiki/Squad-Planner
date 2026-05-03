@@ -281,17 +281,20 @@ static char* read_file_contents(const char* filename) {
     if (fseek(fp, 0, SEEK_END) != 0) {
         fclose(fp);
         free(fname);
+        free(path);
         return NULL;
     }
     long length = ftell(fp);
     if (length < 0) { 
         fclose(fp);
         free(fname);
+        free(path);
         return NULL; 
     }
     if (fseek(fp, 0, SEEK_SET) != 0) {
         fclose(fp);
         free(fname); 
+        free(path);
         return NULL; 
     }
 
@@ -299,6 +302,7 @@ static char* read_file_contents(const char* filename) {
     if (!buffer) {
         fclose(fp);
         free(fname);
+        free(path);
         return NULL; 
     }
 
@@ -427,8 +431,12 @@ int load_from_file(const char* filename) {
         const cJSON* s_obj = NULL;
         cJSON_ArrayForEach(s_obj, squads_arr) {
             const cJSON* j_name = cJSON_GetObjectItemCaseSensitive(s_obj, "name");
-            if (!cJSON_IsString(j_name)) { cJSON_Delete(root); return SP_ERR_FILE_FORMAT; }
-            char* args_new[2]; args_new[0] = (char*)j_name->valuestring; args_new[1] = NULL;
+            if (!cJSON_IsString(j_name)) { 
+                cJSON_Delete(root); return SP_ERR_FILE_FORMAT;
+            }
+            char* args_new[2]; 
+            args_new[0] = (char*)j_name->valuestring;
+            args_new[1] = NULL;
             int ret = new_squad(args_new, NULL);
             if (ret == SP_ERR_SQUAD_EXISTS) {
                 ret = open_squad(args_new, NULL);
@@ -438,7 +446,8 @@ int load_from_file(const char* filename) {
                 }
             } 
             else if (ret != SP_SUCCESS) {
-                cJSON_Delete(root); return ret;
+                cJSON_Delete(root); 
+                return ret;
             }
 
             const cJSON* j_players = cJSON_GetObjectItemCaseSensitive(s_obj, "players");
@@ -468,50 +477,8 @@ int load_from_file(const char* filename) {
         printf("Data loaded from '%s'.\n", filename);
         return SP_SUCCESS;
     }
-
-    /* Legacy single-squad format: clear existing data and recreate target squad if named */
-    const cJSON* j_squad_name = cJSON_GetObjectItemCaseSensitive(root, "squad_name");
-    clear_all_squads();
-    if (cJSON_IsString(j_squad_name) && j_squad_name->valuestring && j_squad_name->valuestring[0] != '\0') {
-        char* args_new[2]; args_new[0] = (char*)j_squad_name->valuestring; args_new[1] = NULL;
-        int ret = new_squad(args_new, NULL);
-        if (ret == SP_ERR_SQUAD_EXISTS) {
-            ret = open_squad(args_new, NULL);
-            if (ret != SP_SUCCESS) { 
-                cJSON_Delete(root);
-                return ret;
-            }
-        } 
-        else if (ret != SP_SUCCESS) {
-            cJSON_Delete(root); return ret;
-        }
-        /* Do not automatically select a squad after legacy load */
-        setting_no_current_squad();
-    } else {
-        setting_no_current_squad();
+    else {
+        cJSON_Delete(root);
+        return SP_ERR_FILE_FORMAT;  /* Missing squads array */
     }
-
-    /* Deserialize players first (formations reference them) */
-    const cJSON* players_arr = cJSON_GetObjectItemCaseSensitive(root, "players");
-    if (cJSON_IsArray(players_arr)) {
-        int ret = deserialize_players(players_arr);
-        if (ret != SP_SUCCESS) {
-            cJSON_Delete(root);
-            return ret;
-        }
-    }
-
-    /* Deserialize formations */
-    const cJSON* formations_arr = cJSON_GetObjectItemCaseSensitive(root, "formations");
-    if (cJSON_IsArray(formations_arr)) {
-        int ret = deserialize_formations(formations_arr);
-        if (ret != SP_SUCCESS) {
-            cJSON_Delete(root);
-            return ret;
-        }
-    }
-
-    cJSON_Delete(root);
-    printf("Data loaded from '%s'.\n", filename);
-    return SP_SUCCESS;
 }

@@ -8,6 +8,8 @@ CFLAGS = -pedantic -Wall -Werror
 # - The src/compat.h header handles strdup/_strdup and unistd.h differences.
 
 OBJS = main.o parser.o exec.o help.o formation.o error.o persistence.o cJSON.o squad.o player.o
+# objects to link into fuzz harness (exclude main.o to avoid duplicate main)
+# OBJS_CORE = parser.o exec.o help.o formation.o error.o persistence.o cJSON.o squad.o player.o
 
 main_run: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o Squad_Planner -lm
@@ -54,3 +56,23 @@ clean:
 	rm -f Squad_Planner
 
 .PHONY: clean
+
+# AFL_CC ?= afl-clang-fast
+
+
+# .PHONY: fuzz setup_testcases
+
+
+# fuzz: setup_testcases
+# 	@echo "Building object files with $(AFL_CC) (excluding main.o)..."
+# 	$(MAKE) CC=$(AFL_CC) CFLAGS="-g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer" $(OBJS_CORE)
+# 	@echo "Linking instrumented fuzz harness (no main.o)..."
+# 	$(AFL_CC) -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer fuzz/fuzz_harness.c $(OBJS_CORE) -o fuzz/fuzz_harness -lm
+# 	@echo "Built fuzz/fuzz_harness"
+
+# setup_testcases:
+# 	@mkdir -p fuzz/testcases
+# 	@cp -r saves/* fuzz/testcases/ 2>/dev/null || true
+# 	@printf "\n" > fuzz/testcases/empty
+# 	@printf "{}" > fuzz/testcases/trunc.json
+# 	@echo "fuzz/testcases prepared (copied from saves/)"

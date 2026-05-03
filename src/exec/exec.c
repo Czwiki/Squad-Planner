@@ -293,7 +293,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             usage = "removeP <position_name> <player_names>[1-10] [-all --help]";
             description = "Removes the specified players from the candidate list of the specified position. With -all option, all players from the position are removed. The position must exist in the current formation.";
-            sanity_check = sanity_check_and_help(args, options, 11, 0, 1, 0, usage, description);
+            sanity_check = sanity_check_and_help(args, options, 11, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
                 if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
                 else ret_val = sanity_check;  /* Error */

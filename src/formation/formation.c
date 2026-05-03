@@ -801,23 +801,6 @@ int delete_formation(char** args, char** options) {
  * so no opaque wrappers are needed.
  */
 
-Squad get_squad(void) {
-    Squad data;
-    data.name       = current_squad ? current_squad->name : NULL;
-    data.players    = current_squad ? current_squad->players : NULL;
-    data.formations = current_squad ? current_squad->formations : NULL;
-    data.next       = NULL;
-    return data;
-}
-
-player* get_player_head(void) {
-    return current_squad ? current_squad->players : NULL;
-}
-
-formation* get_formation_head(void) {
-    return current_squad ? current_squad->formations : NULL;
-}
-
 /* --- Direct creation helpers for persistence load --- */
 
 int create_player_direct(const char* name, int age,
@@ -873,7 +856,7 @@ int create_formation_direct(const char* name) {
     if (!name) return SP_ERR_NULL_PTR;
 
     /* Use a temporary args array to reuse new_formation() logic inline */
-    formation* cur = current_squad ? current_squad->formations : NULL;
+    formation* cur = current_squad->formations;
     while (cur) {
         if (strcmp(cur->name, name) == 0) return SP_ERR_FORMATION_EXISTS;
         cur = cur->next;
@@ -887,9 +870,10 @@ int create_formation_direct(const char* name) {
     for (int i = 0; i < 24; i++) new_f->map_of_positions[i] = NULL;
 
     /* Append to list */
-    if (!current_squad || !current_squad->formations) {
+    if (!current_squad->formations) {
         current_squad->formations = new_f;
-    } else {
+    } 
+    else {
         formation* tail = current_squad->formations;
         while (tail->next) tail = tail->next;
         tail->next = new_f;
