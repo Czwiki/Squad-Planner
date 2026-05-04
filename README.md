@@ -29,7 +29,7 @@ make clean
 
 ## Usage
 
-Start the application by running `./main`. You'll be presented with a command prompt that changes based on your current context:
+Start the application by running `./Squad_Planner` (the build produces `Squad_Planner`). You can also run `make main_run` to build and run immediately. You'll be presented with a command prompt that changes based on your current context:
 
 ```
 squad-planner - main>                  ← main menu
