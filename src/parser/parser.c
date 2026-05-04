@@ -240,9 +240,6 @@ int parse_command(const char* line, int current_context, command* cmd) {
                             }
                             break;
                         case 1:  /* Squad menu */
-                            //if (i == 4) {
-                            //    new_context = 2;  /* 'formation' -> enter formation menu */
-                            //}
                             if (i == 5) {
                                 new_context = 3;  /* 'players' -> enter player menu */
                             }

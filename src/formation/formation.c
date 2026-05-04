@@ -297,9 +297,12 @@ int preferences(char** args, char** options) {
     if (position_id == -1) {
         return SP_ERR_INVALID_POSITION;  /* Position not found */
     }
+    if (!current_formation->map_of_positions[position_id]) {
+        return SP_ERR_NOT_ASSIGNED_POSITION; /* Position not assigned in formation */
+    }
     position* pos = current_formation->map_of_positions[position_id];
 
-    /* Check for -reverse option */
+    /* Parse options (support -reverse anywhere) */
     int backwards = 0;
     if (options && options[0]) {
         if (strcmp(options[0], "-reverse") == 0) {
@@ -309,20 +312,18 @@ int preferences(char** args, char** options) {
     if (pos->size_of_list == 0) {
         return SP_ERR_INVALID_CMD;  /* No players to reorder */
     }
-    
     if (pos->size_of_list == 1) {
         return SP_SUCCESS;  /* No reordering needed */
     }
 
     /* Build preferred index list from args (subset is allowed) */
-    int *is_selected = calloc(pos->size_of_list, sizeof(int));
+    int *is_selected = calloc((size_t)pos->size_of_list, sizeof(int));
     if (!is_selected) {
         return SP_ERR_MEMORY;
     }
 
-    // TODO: Can be further optimised
-    int i = 1;
-    while (args[i] != NULL) {
+    int i = 1; /* args[1].. are player names in desired order */
+    while (args && args[i] != NULL) {
         int found_index = -1;
         for (int j = 0; j < pos->size_of_list; j++) {
             if (strcmp(pos->list_of_players[j]->name, args[i]) == 0) {
@@ -343,7 +344,7 @@ int preferences(char** args, char** options) {
     }
 
     /* Create new list with preferred order first, then remaining stable order */
-    player** new_list = malloc(sizeof(player*) * pos->size_of_list);
+    player** new_list = malloc(sizeof(player*) * (size_t)pos->size_of_list);
     if (!new_list) {
         free(is_selected);
         return SP_ERR_MEMORY;
@@ -362,7 +363,7 @@ int preferences(char** args, char** options) {
             }
         }
     } else {
-        for (int k = 1; args[k] != NULL; k++) {
+        for (int k = 1; args && args[k] != NULL; k++) {
             for (int j = 0; j < pos->size_of_list; j++) {
                 if (strcmp(pos->list_of_players[j]->name, args[k]) == 0) {
                     new_list[write_index] = pos->list_of_players[j];

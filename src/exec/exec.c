@@ -73,7 +73,7 @@ static int sanity_check_and_help(char** args, char** options, int max_args, int 
         return 1;  /* Help page printed */
     }
     if (args_count > max_args || options_count > max_options || args_count < min_args || options_count < min_options) {
-        return SP_ERR_WRONG_USAGE;  /* Too many options or arguments */
+        return SP_ERR_WRONG_USAGE; // wrong number of args or options
     }
     return 0;  /* Valid input */
 }
@@ -221,18 +221,17 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
                 ret_val =  SP_ERR_WRONG_USAGE;
                 break;
             }
-            if (!args || !args[0]) {
-                ret_val = SP_ERR_WRONG_USAGE;
-                break;
-            }
             usage = "preference <position> [player1 player2 ...] [-reverse] [--help]";
             description = "Reorder players in a position by listing preferred players first. Unlisted players keep their existing relative order. Use -reverse to invert only the listed preference order.";
-            int arg_num = get_pos_size_of_list(args[0]);  /* position name + all players in the position */
-            if (arg_num < 0) {
-                ret_val = arg_num;  // errors from formation.c helper function
-                break;
+            int arg_num = 0;
+            if (args && args[0]) {
+                arg_num = get_pos_size_of_list(args[0]);  /* position name + all players in the position */
+                if (arg_num < 0) {
+                    ret_val = arg_num;  // errors from formation.c helper function
+                    break;
+                }
             }
-            sanity_check = sanity_check_and_help(args, options, 1, arg_num+1, 1, 0, usage, description);
+            sanity_check = sanity_check_and_help(args, options, arg_num+1, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
                 if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
                 else ret_val = sanity_check;  /* Error */

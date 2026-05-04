@@ -84,6 +84,12 @@ void set_prompt(char* prompt, int context) {
                 die("Error getting current formation name: ");
             }
             break;
+        case 3:
+            ret_val = snprintf(prompt, 70, "squad-planner - player> ");
+            if (ret_val < 0 || ret_val >= 70) {
+                die("Error setting prompt: ");
+            }
+            break;
         case 5:
             result = current_player_name(in);
             if (result == SP_SUCCESS) {
