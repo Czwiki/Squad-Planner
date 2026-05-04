@@ -1,13 +1,5 @@
 # Feature Proposals
 
-## Quick Wins (low effort, high impact)
-1. **Player statistics completion**
-   - Add `set` for statistics in player sub-menu (currently `add`/`subtract`)
-2. **Clearer wrong-usage details**
-   - Keep generic error short but include command-specific guidance in each `--help` page
-3. **Input robustness**
-   - Consider graceful handling for oversized input by showing command-specific hints per context
-
 ## Mid-term (moderate effort)
 4. **Safer load behavior**
    - Warn before overwrite on `load`, or add an optional merge mode

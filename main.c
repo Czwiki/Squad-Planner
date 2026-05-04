@@ -43,6 +43,70 @@ int clean_command (command* cmd) {
     return 0;
 }
 
+void set_prompt(char* prompt, int context) {
+    int ret_val;
+    int result;
+    char in[40] = {0};
+    switch (context) {
+        case 1:
+            result = current_squad_name(in);
+            if (result == SP_SUCCESS) {
+                ret_val = snprintf(prompt, 70, "squad-planner - '%s' squad> ", in);
+                if (ret_val < 0 || ret_val >= 70) {
+                    die("Error setting prompt: ");
+                }
+            } 
+            else if (result == SP_ERR_NO_SQUAD) {
+                ret_val = snprintf(prompt, 70, "squad-planner - squad> ");
+                if (ret_val < 0 || ret_val >= 70) {
+                    die("Error setting prompt: ");
+                }
+            }
+            else {
+                die("Error getting current squad name: ");
+            }
+            break;
+        case 2:
+            result = current_formation_name(in);
+            if (result == SP_SUCCESS) {
+                ret_val = snprintf(prompt, 70, "squad-planner - '%s' formation> ", in);
+            if (ret_val < 0 || ret_val >= 70) {
+                die("Error setting prompt: ");
+            }
+            } 
+            else if (result == SP_ERR_NO_FORMATION) {
+                ret_val = snprintf(prompt, 70, "squad-planner - formation> ");
+            if (ret_val < 0 || ret_val >= 70) {
+                die("Error setting prompt: ");
+            }
+            }
+            else {
+                die("Error getting current formation name: ");
+            }
+            break;
+        case 5:
+            result = current_player_name(in);
+            if (result == SP_SUCCESS) {
+                ret_val = snprintf(prompt, 70, "squad-planner - '%s' player> ", in);
+                if (ret_val < 0 || ret_val >= 70) {
+                    die("Error setting prompt: ");
+                }
+            }
+            else if (result == SP_ERR_PLAYER_NOT_FOUND) {
+                ret_val = snprintf(prompt, 70, "squad-planner - player> ");
+                if (ret_val < 0 || ret_val >= 70) {
+                    die("Error setting prompt: ");
+                }
+            }
+            else {
+                die("Error getting current player name: ");
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 int main(int argc, char const* argv[])
 {
     // command id -1 == exit
@@ -121,53 +185,7 @@ int main(int argc, char const* argv[])
         }
         
         if (cmd->future_context != context) {
-            int ret_val = 0;
-            switch (cmd->future_context) {
-                case 0:
-                    ret_val = snprintf(prompt, 70, "squad-planner - main> ");
-                    if (ret_val < 0 || ret_val >= 70) {
-                        die("Error setting prompt: ");
-                    }
-                    context = cmd->future_context;
-                    break;
-                case 1:
-                    ret_val = snprintf(prompt, 70, "squad-planner - squad> ");
-                    if (ret_val < 0 || ret_val >= 70) {
-                        die("Error setting prompt: ");
-                    }
-                    context = cmd->future_context;
-                    break;
-                case 2:
-                    ret_val = snprintf(prompt, 70, "squad-planner - formation> ");
-                    if (ret_val < 0 || ret_val >= 70) {
-                        die("Error setting prompt: ");
-                    }
-                    context = cmd->future_context;
-                    break;
-                case 3:
-                    ret_val = snprintf(prompt, 70, "squad-planner - player> ");
-                    if (ret_val < 0 || ret_val >= 70) {
-                        die("Error setting prompt: ");
-                    }
-                    context = cmd->future_context;
-                    break;
-                case 4:
-                    ret_val = snprintf(prompt, 70, "squad-planner - saves> ");
-                    if (ret_val < 0 || ret_val >= 70) {
-                        die("Error setting prompt: ");
-                    }
-                    context = cmd->future_context;
-                    break;
-                case 5:
-                    ret_val = snprintf(prompt, 70, "squad-planner - player> ");
-                    if (ret_val < 0 || ret_val >= 70) {
-                        die("Error setting prompt: ");
-                    }
-                    context = cmd->future_context;
-                    break;
-                default:
-                    break;
-            }
+            context = cmd->future_context;
             executing = 0;
         }
 
@@ -175,77 +193,26 @@ int main(int argc, char const* argv[])
             int ret_val = execute_command(cmd, context);
             printf("%s\n", sp_error_string(ret_val));
             if (ret_val == SP_SUCCESS) {
-                if (context == 1) {
-                    // further checks required to allow context switch, therefore here and not in parser
-                    if (cmd->id == 4) { // entering formation menu from squad menu
-                        context = 2;
-                    }
-                    else if (cmd->id == 5) { // entering player menu from squad menu
-                        context = 3;
-                    }
-                    char in[40] = {0};
-                    int result = current_squad_name(in);
-                    if (result == SP_SUCCESS) {
-                        ret_val = snprintf(prompt, 70, "squad-planner - '%s' squad> ", in);
-                        if (ret_val < 0 || ret_val >= 70) {
-                            die("Error setting prompt: ");
+                switch (context) {
+                    case 1:
+                        if (cmd->id == 4) { // entering formation menu from squad menu
+                            context = 2;
                         }
-                    } 
-                    else if (result == SP_ERR_NO_SQUAD) {
-                        ret_val = snprintf(prompt, 70, "squad-planner - squad> ");
-                        if (ret_val < 0 || ret_val >= 70) {
-                            die("Error setting prompt: ");
+                        else if (cmd->id == 5) { // entering player menu from squad menu
+                            context = 3;
                         }
-                    }
-                    else {
-                        die("Error getting current squad name: ");
-                    }
-                }
-                if (context == 2) { // formation menu dynamic prompt
-                    char in[40] = {0};
-                    int result = current_formation_name(in);
-                    if (result == SP_SUCCESS) {
-                        ret_val = snprintf(prompt, 70, "squad-planner - '%s' formation> ", in);
-                        if (ret_val < 0 || ret_val >= 70) {
-                            die("Error setting prompt: ");
+                        break;
+                    case 3:
+                        if (cmd->id == 2) { // openP succeeded – switch to player editing sub-menu
+                            context = 5;
                         }
-                    } 
-                    else if (result == SP_ERR_NO_FORMATION) {
-                        ret_val = snprintf(prompt, 70, "squad-planner - formation> ");
-                        if (ret_val < 0 || ret_val >= 70) {
-                            die("Error setting prompt: ");
-                        }
-                    }
-                    else {
-                        die("Error getting current formation name: ");
-                    }
-                }
-                if (context == 3) { // openP in player menu: enter player editing sub-menu
-                    if (cmd->id == 2) { // openP succeeded – switch to player editing sub-menu
-                        context = 5;
-                    }
-                }
-                if (context == 5) { // player editing sub-menu dynamic prompt
-                    char in[40] = {0};
-                    int result = current_player_name(in);
-                    if (result == SP_SUCCESS) {
-                        ret_val = snprintf(prompt, 70, "squad-planner - '%s' player> ", in);
-                        if (ret_val < 0 || ret_val >= 70) {
-                            die("Error setting prompt: ");
-                        }
-                    }
-                    else if (result == SP_ERR_PLAYER_NOT_FOUND) {
-                        ret_val = snprintf(prompt, 70, "squad-planner - player> ");
-                        if (ret_val < 0 || ret_val >= 70) {
-                            die("Error setting prompt: ");
-                        }
-                    }
-                    else {
-                        die("Error getting current player name: ");
-                    }
+                        break;
+                    default:
+                        break;
                 }
             }
         }
+        set_prompt(prompt, context);
         printf("%s", prompt);
         if (fflush(stdout) != 0) {
             die("Error flushing stdout: ");
