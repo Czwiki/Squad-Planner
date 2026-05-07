@@ -10,7 +10,3 @@ main
 _codeql*
 # Executable
 Squad_Planner
-
-# fuzzing artifacts
-/fuzz*
-/findings*
