@@ -31,11 +31,12 @@ const char* sp_error_string(int error_code);
 #define SP_ERR_SQUAD_EXISTS    -28  /* Squad already exists */
 #define SP_ERR_SQUAD_NOT_FOUND    -29  /* Squad not found */
 
-// TODO
 /* File I/O errors (-30 to -39) */
 #define SP_ERR_FILE_OPEN    -30  /* Could not open file */
 #define SP_ERR_FILE_READ    -31  /* Error reading file */
 #define SP_ERR_FILE_WRITE   -32  /* Error writing file */
 #define SP_ERR_FILE_FORMAT  -33  /* Invalid file format */
+
+#define SP_HELP_DISPLAYED  -100  /* Help displayed */
 
 #endif /* ERRORS_H */

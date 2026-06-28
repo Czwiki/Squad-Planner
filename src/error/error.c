@@ -29,6 +29,8 @@ const char* sp_error_string(int error_code) {
         case SP_ERR_FILE_WRITE: return "File write error";
         case SP_ERR_FILE_FORMAT: return "Invalid file format";
 
+        case SP_HELP_DISPLAYED: return "Help displayed";
+
         default:                return "Unknown error";
     }
 }

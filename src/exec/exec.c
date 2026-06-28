@@ -57,9 +57,9 @@ static int count_tokens(char** args) {
  * @param description Description string to display for help
  * 
  * @return 0 if validation passes
- * @return 1 if help was displayed (caller should return success)
- * @return -1 if both args and options are NULL
- * @return -2 if too many options or arguments provided
+ * @return SP_HELP_DISPLAYED if help was displayed (caller should return success)
+ * @return SP_ERR_WRONG_USAGE if both args and options are NULL
+ * @return SP_ERR_WRONG_USAGE if too many options or arguments provided
  */
 static int sanity_check_and_help(char** args, char** options, int max_args, int min_args, int max_options, int min_options, char* usage, char* description) {
     int args_count = count_tokens(args);
@@ -70,7 +70,7 @@ static int sanity_check_and_help(char** args, char** options, int max_args, int 
             perror("Error flushing stdout: ");
             return SP_ERR_INTERNAL;
         }
-        return 1;  /* Help page printed */
+        return SP_HELP_DISPLAYED;  /* Help page printed */
     }
     if (args_count > max_args || options_count > max_options || args_count < min_args || options_count < min_options) {
         return SP_ERR_WRONG_USAGE; // wrong number of args or options
@@ -114,8 +114,7 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             description = "Creates a new squad with the specified name. The name must be unique and not already used by an existing squad. If you wish to use a name consisting of multiple words, use underscores instead of spaces (e.g., 'My_Squad'). The new squad becomes the current squad for editing.";
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = new_squad(args, options);
@@ -125,8 +124,7 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             description = "Displays a list of all squads that have been created.";
             sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = list_squads();
@@ -136,8 +134,7 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             description = "Opens an existing squad.";
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = open_squad(args, options);
@@ -148,8 +145,7 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             description = "Enters the formation menu for the current squad. You must have a squad open to use this command.";
             sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = to_formation();
@@ -159,8 +155,7 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
             description = "Enters the player menu for the current squad.";
             sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = to_players();
@@ -170,8 +165,7 @@ static int exec_squad_command(int cmd_id, char **args, char **options) {
         //    description = "Saves the current squad data. This command transitions to the saves menu where you can choose to save to a file or return to the squad menu.";
         //    sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
         //    if (sanity_check != 0) {
-        //        if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-        //        else ret_val = sanity_check;  /* Error */
+        //        ret_val = sanity_check;  /* Error or Help Displayed */
         //        break;
         //    }
         //    ret_val = save_squad(args, options);
@@ -210,8 +204,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "Creates a new formation with the specified name. The name must be unique and not already used by an existing formation. If you wish to use a name consisting of multiple words, use underscores instead of spaces(e.g., '4_3_3', '4_2_3_1'). The new formation becomes the current formation for editing.";
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val =  sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = new_formation(args, options);
@@ -233,8 +226,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             }
             sanity_check = sanity_check_and_help(args, options, arg_num+1, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = preferences(args, options);
@@ -248,8 +240,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "Adds the specified positions to the current formation. The formation must already exist.";
             sanity_check = sanity_check_and_help(args, options, 11, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = add_position_to_formation(args, options);
@@ -264,8 +255,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             sanity_check = sanity_check_and_help(args, options, 11, 2, 1, 0, usage, description);
 
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = add_player_to_position(args, options);
@@ -279,8 +269,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "Removes the specified position from the current formation. Position must not have players assigned.";
             sanity_check = sanity_check_and_help(args, options, 5, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = remove_position_from_formation(args, options);
@@ -294,8 +283,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "Removes the specified players from the candidate list of the specified position. With -all option, all players from the position are removed. The position must exist in the current formation.";
             sanity_check = sanity_check_and_help(args, options, 11, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = remove_player_from_position(args, options);
@@ -310,8 +298,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "List all players assigned to the specified position in the current formation.";
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = list_players_of_position(args, options);
@@ -325,8 +312,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "Displays the names of all formations in the formation list.";
             sanity_check = sanity_check_and_help(NULL, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = list_formations(options);
@@ -341,8 +327,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
 
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = open_formation(args, options);
@@ -356,8 +341,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "Display the current formation in a tactical view.";
             sanity_check = sanity_check_and_help(NULL, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = show(options);
@@ -371,8 +355,7 @@ static int exec_formation_command(int cmd_id, char** args, char** options) {
             description = "Removes the specified formation from the formation list. The formation must already exist.";
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = delete_formation(args, options);
@@ -405,8 +388,7 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
             description = "Creates a new player with the specified attributes and adds them to the global player list. If you wish to add a player with names consisting of multiople words, use underscores instead (e.g., 'Ter_Stegen', 'Christiano_Ronaldo'). All other non-alphabetical characters are treated as valid input. Name can only have 40 characters maximum. Age must be greater than 0, and ratings must be between 0 and 100.";
             sanity_check = sanity_check_and_help(args, options, 5, 5, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = new_player(args, options);
@@ -416,8 +398,7 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
             description = "Opens an existing player for editing. The player must already exist.";
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = open_player(args, options);
@@ -427,8 +408,7 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
             description = "Displays a list of all players that have been created.";
             sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = list_players();
@@ -442,8 +422,7 @@ static int exec_player_command(int cmd_id, char **args, char **options) {
             description = "Removes the specified player from the global player list and all positions they are assigned to. The player must already exist.";
             sanity_check = sanity_check_and_help(args, options, 1, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;  /* Help displayed */
-                else ret_val = sanity_check;  /* Error */
+                ret_val = sanity_check;  /* Error or Help Displayed */
                 break;
             }
             ret_val = delete_player(args, options);
@@ -469,8 +448,7 @@ static int exec_player_edit_command(int cmd_id, char **args, char **options) {
             description = "Displays all attributes and statistics of the currently open player.";
             sanity_check = sanity_check_and_help(args, options, 0, 0, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;
-                else ret_val = sanity_check;
+                ret_val = sanity_check;
                 break;
             }
             ret_val = show_player();
@@ -484,8 +462,7 @@ static int exec_player_edit_command(int cmd_id, char **args, char **options) {
             description = "Sets a base attribute of the currently open player. Valid attributes: age, overall, potential, own.";
             sanity_check = sanity_check_and_help(args, options, 2, 2, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;
-                else ret_val = sanity_check;
+                ret_val = sanity_check;
                 break;
             }
             ret_val = set_player_attr(args, options);
@@ -499,8 +476,7 @@ static int exec_player_edit_command(int cmd_id, char **args, char **options) {
             description = "Increments a statistic of the currently open player by the given amount (default: 1). Valid stats: goals, assists, appearances, yellow_cards, red_cards.";
             sanity_check = sanity_check_and_help(args, options, 2, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;
-                else ret_val = sanity_check;
+                ret_val = sanity_check;
                 break;
             }
             ret_val = add_player_stat(args, options);
@@ -514,8 +490,7 @@ static int exec_player_edit_command(int cmd_id, char **args, char **options) {
             description = "Decrements a statistic of the currently open player by the given amount (default: 1). Valid stats: goals, assists, appearances, yellow_cards, red_cards. Values cannot go below 0.";
             sanity_check = sanity_check_and_help(args, options, 2, 1, 1, 0, usage, description);
             if (sanity_check != 0) {
-                if (sanity_check == 1) ret_val = SP_SUCCESS;
-                else ret_val = sanity_check;
+                ret_val = sanity_check;
                 break;
             }
             ret_val = subtract_player_stat(args, options);
